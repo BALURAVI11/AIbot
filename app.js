@@ -167,7 +167,16 @@ function loadProfile() {
   const storedProfile = localStorage.getItem("virtual_self_profile");
   if (storedProfile) {
     try {
-      profile = { ...DEFAULT_PROFILE, ...JSON.parse(storedProfile) };
+      const parsed = JSON.parse(storedProfile) || {};
+      profile = { ...DEFAULT_PROFILE };
+      
+      // Deep merge non-empty keys only to prevent loading empty strings from outdated localStorage cache
+      Object.keys(DEFAULT_PROFILE).forEach(key => {
+        if (parsed[key] !== undefined && parsed[key] !== null && parsed[key].toString().trim() !== "") {
+          profile[key] = parsed[key];
+        }
+      });
+      
       // Auto-upgrade older 'puter' default provider users to the new Gemini serverless backend
       if (profile.provider === "puter" && !profile.apiKey) {
         profile.provider = "gemini";
