@@ -14,6 +14,30 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
+// Load local .env variables securely on startup (zero-dependency)
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const firstEquals = trimmed.indexOf('=');
+        if (firstEquals !== -1) {
+          const key = trimmed.substring(0, firstEquals).trim();
+          const val = trimmed.substring(firstEquals + 1).trim().replace(/^['"]|['"]$/g, '');
+          if (key) {
+            process.env[key] = val;
+          }
+        }
+      }
+    });
+    console.log('📝  Successfully loaded local environment configurations from .env');
+  }
+} catch (envError) {
+  console.warn('⚠️  Could not load local .env configurations:', envError.message);
+}
+
 const PORT = 3000;
 const PUBLIC_DIR = __dirname; // Serves files from this folder
 
@@ -31,6 +55,59 @@ const MIME_TYPES = {
 
 const server = http.createServer((req, res) => {
   console.log(`[HTTP] ${req.method} ${req.url}`);
+
+  // Handle serverless API route locally if requested
+  if (req.url === '/api/chat' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', async () => {
+      try {
+        const { prompt } = JSON.parse(body);
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Gemini API Key (GEMINI_API_KEY) is not configured in local environment.' }));
+          return;
+        }
+
+        const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const apiResponse = await fetch(apiURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+              maxOutputTokens: 150,
+              temperature: 0.7
+            }
+          })
+        });
+
+        const data = await apiResponse.json();
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
+          const answer = data.candidates[0].content.parts[0].text.trim();
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ answer }));
+          return;
+        }
+        throw new Error(data.error?.message || "Invalid response from Gemini API");
+      } catch (err) {
+        console.error("Gemini local error:", err);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
 
   // Normalize URL path to resolve file matching
   let filePath = req.url === '/' || req.url === '/index.html' 

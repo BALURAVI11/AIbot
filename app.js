@@ -17,7 +17,7 @@ const DEFAULT_PROFILE = {
   contact: "Email: raviteja.kolluri@email.com | Phone: +1 (555) 019-2834 | GitHub: github.com/ravitejakolluri | LinkedIn: linkedin.com/in/ravitejakolluri",
   education: "Bachelor of Science in Computer Science, specialized in Intelligent Systems and Advanced Software Architectures (Honors).",
   employment: "Lead AI Developer at Agentic Labs (2024 - Present): Pioneered multi-agent pipeline automation. | Senior Full-Stack Engineer at SynthCode (2021 - 2024): Built advanced developer toolkits and responsive cloud panels.",
-  provider: "puter",
+  provider: "gemini",
   apiKey: ""
 };
 
@@ -168,6 +168,10 @@ function loadProfile() {
   if (storedProfile) {
     try {
       profile = { ...DEFAULT_PROFILE, ...JSON.parse(storedProfile) };
+      // Auto-upgrade older 'puter' default provider users to the new Gemini serverless backend
+      if (profile.provider === "puter" && !profile.apiKey) {
+        profile.provider = "gemini";
+      }
     } catch (e) {
       console.error("Failed to parse stored profile, reverting to defaults.", e);
       profile = { ...DEFAULT_PROFILE };
@@ -766,8 +770,41 @@ IMPORTANT INSTRUCTIONS:
 User's Question: "${question}"
 AI Twin Response:`;
 
-  const provider = profile.provider || "puter";
+  const provider = profile.provider || "gemini";
   
+  // Vercel Serverless Function Proxy for Gemini if key is not configured client-side
+  if (provider === "gemini" && !profile.apiKey) {
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt: fullPrompt })
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Serverless Proxy HTTP ${res.status}`);
+      }
+      
+      const data = await res.json();
+      if (data.answer) {
+        return data.answer.trim();
+      }
+      throw new Error(data.error || "Empty response from serverless endpoint");
+    } catch (err) {
+      console.warn("Serverless Gemini endpoint failed, attempting keyless Puter fallback...", err);
+      // Fallback to keyless Puter AI to guarantee the user gets a proper response!
+      try {
+        const response = await puter.ai.chat(fullPrompt, { model: "gpt-4o-mini" });
+        if (response && response.trim()) return response.trim();
+      } catch (puterErr) {
+        console.error("Keyless Puter fallback failed as well:", puterErr);
+      }
+      throw err;
+    }
+  }
+
   if (provider === "puter") {
     // Puter AI (Free client-side LLM call)
     try {
@@ -786,7 +823,7 @@ AI Twin Response:`;
     }
   } 
   
-  // Custom API Key fallback paths
+  // Custom API Key fallback paths (Requires manual key entered client-side)
   const apiKey = profile.apiKey;
   if (!apiKey) {
     throw new Error("Custom API Key provider selected but no key was supplied.");
