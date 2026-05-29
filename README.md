@@ -78,9 +78,9 @@ The system relies on a purely decoupled client-driven serverless architecture.
 The system is highly flexible and built so **anyone** can test it with their own background:
 
 1.  **Live Configuration Panel Drawer**:
-    *   Click **Edit AI Twin** in the top right.
+    *   Click **Personal Details** in the top right.
     *   You can directly edit the **Biography**, **Strengths**, **Weaknesses**, **Contact details**, **Education**, or **Employment History** text boxes.
-    *   Click **Save Persona**. All changes are saved to browser storage and the AI Twin is **instantly retrained**! Ask the bot about your new details, and it will immediately answer in character.
+    *   Click **Save Details**. All changes are saved to browser storage and the AI Twin is **instantly retrained**! Ask the bot about your new details, and it will immediately answer in character.
 2.  **Feeding Details Directly inside Prompt Inputs**:
     *   If you wish to test custom prompts or feed background information directly into the conversation (e.g., *"Forget previous details. My name is Alex, a senior designer. Now tell me who you are."*), you can type these instructions directly into the **Keyboard Input Form** at the bottom of the transcript pane.
     *   The LLM will parse your custom input text dynamically and adapt its behavior to your instructions on-the-fly!
@@ -91,13 +91,13 @@ The system is highly flexible and built so **anyone** can test it with their own
 
 While the bot runs completely **free and keyless** out-of-the-box using Puter's developer cloud, we have provided an elegant fallback dashboard for recruiters or power-users who want to connect their own keys:
 
-1.  Open the **Edit AI Twin** panel in the top right.
+1.  Open the **Personal Details** panel in the top right.
 2.  Scroll to the bottom and expand **Custom API Key (Fallback)**.
 3.  Choose your preferred LLM Provider:
     *   **Puter AI**: (Default) Keyless and free.
     *   **OpenAI API**: Runs on `gpt-4o-mini`.
     *   **Gemini API**: Runs on `gemini-1.5-flash`.
-4.  Paste your **API Key** (e.g., `sk-...` or Google Key) and click **Save Persona**.
+4.  Paste your **API Key** (e.g., `sk-...` or Google Key) and click **Save Details**.
 5.  *Security Note: Your keys are processed strictly inside your own browser window. They are saved only to your local machine (`localStorage`) and are never sent to any third-party servers, guaranteeing full privacy.*
 
 ---
@@ -111,7 +111,7 @@ Follow this simple, step-by-step checklist to systematically verify every requir
 *   **Check**: Verify that the bot transcribes the click, queries the LLM, prints a first-person bubble as *"Raviteja Kolluri"*, and speaks your exact custom details in a natural human voice.
 
 ### 2. Verification of New Configuration Fields (Strengths, Weaknesses, Contact, Education, Employment)
-*   **Action**: Open the **Edit AI Twin** panel and inspect the five pre-populated areas. Close the panel, and speak or type these questions:
+*   **Action**: Open the **Personal Details** panel and inspect the five pre-populated areas. Close the panel, and speak or type these questions:
     *   *"What are your strengths?"*
     *   *"Tell me your weaknesses."*
     *   *"How can I contact you?"*

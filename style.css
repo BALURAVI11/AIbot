@@ -1209,24 +1209,74 @@ textarea.form-input {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
+  body {
+    height: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  .app-container {
+    height: auto !important;
+    min-height: calc(100vh - 70px) !important;
+    min-height: calc(100dvh - 70px) !important;
+    overflow: visible !important;
+  }
   header {
-    padding: 0 1.5rem;
+    padding: 0 1rem !important;
+    gap: 0.5rem;
+  }
+  .logo-text {
+    font-size: 1.15rem !important;
+  }
+  .logo-badge {
+    display: none !important;
+  }
+  .header-actions {
+    gap: 0.75rem !important;
+  }
+  .status-indicator span {
+    display: none !important;
+  }
+  .status-indicator {
+    padding: 8px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    aspect-ratio: 1/1 !important;
+  }
+  .status-dot {
+    margin: 0 !important;
   }
   .stage {
     flex-direction: column !important;
-    overflow-y: auto !important;
-    gap: 2rem !important;
-    padding: 1.5rem !important;
+    height: auto !important;
+    min-height: calc(100vh - 70px) !important;
+    min-height: calc(100dvh - 70px) !important;
+    overflow: visible !important;
+    gap: 2.5rem !important;
+    padding: 1.5rem 1rem !important;
+  }
+  .voice-stage-center {
+    flex: none !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: flex-start !important;
+    gap: 1.5rem !important;
   }
   .stage-right-panel {
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     flex: none !important;
-    gap: 1rem !important;
+    gap: 1.5rem !important;
   }
   .transcript-pane {
-    height: 350px !important;
+    height: 400px !important;
     flex: none !important;
   }
   .btn-sidebar-toggle span {
@@ -1238,6 +1288,10 @@ textarea.form-input {
   .voice-orb-container {
     width: 240px;
     height: 240px;
+  }
+  .orb-glow-backdrop {
+    width: 240px !important;
+    height: 240px !important;
   }
   .voice-orb {
     width: 150px;
@@ -1256,7 +1310,17 @@ textarea.form-input {
     gap: 0.75rem;
     align-items: stretch;
   }
+  .voice-select-container {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .voice-select {
+    max-width: 70% !important;
+    flex: 1;
+  }
   .voice-controls {
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem !important;
   }
 }

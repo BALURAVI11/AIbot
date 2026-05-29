@@ -212,7 +212,7 @@ function saveProfile() {
   profile.apiKey = DOM.apiKey.value.trim();
   
   localStorage.setItem("virtual_self_profile", JSON.stringify(profile));
-  showToast("AI Twin Persona Saved!", false);
+  showToast("Personal Details Saved!", false);
   
   // Close Sidebar
   DOM.sidebar.classList.remove("open");
@@ -444,8 +444,10 @@ function initSpeechSynthesis() {
       DOM.voiceSelect.value = preferredVoice;
       selectedVoice = availableVoices.find(v => v.name === preferredVoice);
     } else {
-      // Default to Google US English or Samantha if available
-      const bestDefault = sortedVoices.find(v => v.name.includes("Google US English") || v.name.includes("Samantha") || v.lang === "en-US");
+      // Default to "Shelly" (English United Kingdom), or any en-GB voice, falling back to US defaults
+      const bestDefault = sortedVoices.find(v => v.name.toLowerCase().includes("shelly")) ||
+                          sortedVoices.find(v => v.lang.startsWith("en-GB") || v.lang.startsWith("en_GB")) ||
+                          sortedVoices.find(v => v.name.includes("Google US English") || v.name.includes("Samantha") || v.lang.startsWith("en-US"));
       if (bestDefault) {
         DOM.voiceSelect.value = bestDefault.name;
         selectedVoice = bestDefault;
