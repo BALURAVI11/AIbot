@@ -109,10 +109,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Strip query parameters if any (e.g. /style.css?v=1.0.9 -> /style.css)
+  const urlPath = req.url.split('?')[0];
+
   // Normalize URL path to resolve file matching
-  let filePath = req.url === '/' || req.url === '/index.html' 
+  let filePath = urlPath === '/' || urlPath === '/index.html' 
     ? path.join(PUBLIC_DIR, 'index.html') 
-    : path.join(PUBLIC_DIR, req.url);
+    : path.join(PUBLIC_DIR, urlPath);
 
   // Prevent directory traversal attacks
   if (!filePath.startsWith(PUBLIC_DIR)) {

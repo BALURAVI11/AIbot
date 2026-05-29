@@ -9,10 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.0.8">
-  
-  <!-- Puter.js SDK (Provides keyless client-side AI) -->
-  <script src="https://js.puter.com/v2/"></script>
+  <link rel="stylesheet" href="style.css?v=1.0.9">
 </head>
 <body>
 
@@ -286,34 +283,25 @@
           <textarea id="profile-employment" class="form-input">Lead AI Developer at Agentic Labs (2024 - Present): Pioneered multi-agent pipeline automation. | Senior Full-Stack Engineer at SynthCode (2021 - 2024): Built advanced developer toolkits and responsive cloud panels.</textarea>
         </div>
 
-        <!-- Optional: API Key Collapse settings for robust fallback -->
+        <!-- Optional: API Key Collapse settings for secure override -->
         <div id="collapsible-settings" class="collapsible-settings">
           <div id="collapsible-toggle" class="collapsible-header">
             <span class="collapsible-header-title">
-              <i class="fa-solid fa-key"></i> Custom API Key (Fallback)
+              <i class="fa-solid fa-key"></i> Gemini API Key (Fallback)
             </span>
             <i id="collapsible-icon" class="fa-solid fa-chevron-down collapsible-icon"></i>
           </div>
           
           <div class="collapsible-content">
             <div class="section-info">
-              Completely optional! By default, this app queries Puter's keyless free AI service. Use this section if you wish to run on your own key.
+              Completely optional! If left blank, the app securely queries the server-side Gemini key set by the administrator. Add a key here if you wish to run on your own key.
             </div>
             
             <div class="form-group">
-              <label for="api-provider" class="form-label">LLM Provider</label>
-              <select id="api-provider" class="form-input">
-                <option value="puter">Puter AI (Keyless - Free)</option>
-                <option value="openai">OpenAI API (GPT-4o-mini)</option>
-                <option value="gemini">Gemini API (Gemini 1.5 Flash)</option>
-              </select>
-            </div>
-            
-            <div class="form-group" id="api-key-group" style="display: none;">
-              <label for="api-key" class="form-label">API Key</label>
+              <label for="api-key" class="form-label">Gemini API Key</label>
               <div style="position: relative; display: flex; align-items: center;">
-                <input type="password" id="api-key" class="form-input" style="flex: 1; padding-right: 35px;" placeholder="sk-...">
-                <button id="btn-toggle-key-visibility" type="button" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer;" aria-label="Toggle password visibility">
+                <input type="password" id="api-key" class="form-input" style="flex: 1; padding-right: 35px; width: 100%;" placeholder="AIzaSy...">
+                <button id="btn-toggle-key-visibility" type="button" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer;" aria-label="Toggle key visibility">
                   <i class="fa-solid fa-eye"></i>
                 </button>
               </div>
@@ -342,6 +330,6 @@
   </div>
 
   <!-- Client JavaScript -->
-  <script src="app.js?v=1.0.8"></script>
+  <script src="app.js?v=1.0.9"></script>
 </body>
 </html>

@@ -1,7 +1,10 @@
 /**
  * VIRTUAL SELF: VOICE BOT - CLIENT INTERACTION ENGINE
- * Orchestrates Speech APIs, Puter AI, Local Custom Keys, and Orb States.
+ * Orchestrates Speech APIs, Google Gemini AI, and Orb States.
  */
+
+// Paste your actual Google Gemini API Key between the quotes below to load it automatically by default!
+const HARDCODED_GEMINI_API_KEY = ""; 
 
 // 1. Default Profile Definition (representing Raviteja Kolluri)
 const DEFAULT_PROFILE = {
@@ -71,8 +74,6 @@ const DOM = {
   // API settings
   collapsibleSettings: document.getElementById("collapsible-settings"),
   collapsibleToggle: document.getElementById("collapsible-toggle"),
-  apiProvider: document.getElementById("api-provider"),
-  apiKeyGroup: document.getElementById("api-key-group"),
   apiKey: document.getElementById("api-key"),
   btnToggleKeyVisibility: document.getElementById("btn-toggle-key-visibility"),
   
@@ -202,10 +203,7 @@ function loadProfile() {
   DOM.inputContact.value = profile.contact;
   DOM.inputEducation.value = profile.education;
   DOM.inputEmployment.value = profile.employment;
-  DOM.apiProvider.value = profile.provider || "puter";
   DOM.apiKey.value = profile.apiKey || "";
-  
-  updateApiKeyVisibility();
 }
 
 function saveProfile() {
@@ -221,7 +219,7 @@ function saveProfile() {
   profile.contact = DOM.inputContact.value.trim() || DEFAULT_PROFILE.contact;
   profile.education = DOM.inputEducation.value.trim() || DEFAULT_PROFILE.education;
   profile.employment = DOM.inputEmployment.value.trim() || DEFAULT_PROFILE.employment;
-  profile.provider = DOM.apiProvider.value;
+  profile.provider = "gemini";
   profile.apiKey = DOM.apiKey.value.trim();
   
   localStorage.setItem("virtual_self_profile", JSON.stringify(profile));
@@ -257,8 +255,6 @@ function initUIListeners() {
   DOM.collapsibleToggle.addEventListener("click", () => {
     DOM.collapsibleSettings.classList.toggle("expanded");
   });
-  
-  DOM.apiProvider.addEventListener("change", updateApiKeyVisibility);
   
   DOM.btnToggleKeyVisibility.addEventListener("click", () => {
     const isPassword = DOM.apiKey.type === "password";
@@ -345,14 +341,7 @@ function initUIListeners() {
   }
 }
 
-function updateApiKeyVisibility() {
-  const provider = DOM.apiProvider.value;
-  if (provider === "puter") {
-    DOM.apiKeyGroup.style.display = "none";
-  } else {
-    DOM.apiKeyGroup.style.display = "flex";
-  }
-}
+// updateApiKeyVisibility function removed as Puter is deleted
 
 // 8. Speech-to-Text (STT) Setup
 function initSpeechRecognition() {
@@ -784,91 +773,11 @@ IMPORTANT INSTRUCTIONS:
 User's Question: "${question}"
 AI Twin Response:`;
 
-  const provider = profile.provider || "gemini";
-  
-  // Vercel Serverless Function Proxy for Gemini if key is not configured client-side
-  if (provider === "gemini" && !profile.apiKey) {
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ prompt: fullPrompt })
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Serverless Proxy HTTP ${res.status}`);
-      }
-      
-      const data = await res.json();
-      if (data.answer) {
-        return data.answer.trim();
-      }
-      throw new Error(data.error || "Empty response from serverless endpoint");
-    } catch (err) {
-      console.warn("Serverless Gemini endpoint failed, attempting keyless Puter Gemini fallback...", err);
-      // Fallback to keyless Puter Gemini to guarantee the user gets a proper response!
-      try {
-        const response = await puter.ai.chat(fullPrompt, { model: "gemini-1.5-flash" });
-        if (response && response.trim()) return response.trim();
-      } catch (puterErr) {
-        console.error("Keyless Puter Gemini fallback failed as well:", puterErr);
-      }
-      throw err;
-    }
-  }
+  const clientKey = profile.apiKey || HARDCODED_GEMINI_API_KEY;
 
-  if (provider === "puter") {
-    // Puter AI (Free client-side LLM call)
-    try {
-      // In Puter.js, puter.ai.chat performs keyless model inference
-      const response = await puter.ai.chat(fullPrompt, { model: "gpt-4o-mini" });
-      if (response && response.trim()) {
-        return response.trim();
-      }
-      throw new Error("Empty response from Puter AI");
-    } catch (err) {
-      console.warn("Puter.js error, attempting backup model...", err);
-      // Fallback to general LLM chat if the default model fails
-      const backup = await puter.ai.chat(fullPrompt);
-      if (backup && backup.trim()) return backup.trim();
-      throw err;
-    }
-  } 
-  
-  // Custom API Key fallback paths (Requires manual key entered client-side)
-  const apiKey = profile.apiKey;
-  if (!apiKey) {
-    throw new Error("Custom API Key provider selected but no key was supplied.");
-  }
-  
-  if (provider === "openai") {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: fullPrompt }],
-        max_tokens: 150,
-        temperature: 0.7
-      })
-    });
-    
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(`OpenAI HTTP ${res.status}: ${errBody}`);
-    }
-    
-    const data = await res.json();
-    return data.choices[0].message.content.trim();
-  }
-  
-  if (provider === "gemini") {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+  if (clientKey) {
+    // Direct client-side Gemini AI call
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientKey}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -886,7 +795,7 @@ AI Twin Response:`;
     
     if (!res.ok) {
       const errBody = await res.text();
-      throw new Error(`Gemini HTTP ${res.status}: ${errBody}`);
+      throw new Error(`Gemini API client-side HTTP ${res.status}: ${errBody}`);
     }
     
     const data = await res.json();
@@ -894,9 +803,27 @@ AI Twin Response:`;
       return data.candidates[0].content.parts[0].text.trim();
     }
     throw new Error("Invalid response format from Gemini API");
+  } else {
+    // Vercel Serverless Function Proxy for Gemini if key is not configured client-side
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt: fullPrompt })
+    });
+    
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Serverless Proxy HTTP ${res.status}`);
+    }
+    
+    const data = await res.json();
+    if (data.answer) {
+      return data.answer.trim();
+    }
+    throw new Error(data.error || "Empty response from serverless endpoint");
   }
-  
-  throw new Error("Unsupported AI Provider configured");
 }
 
 // 12. Transcript Render utilities
