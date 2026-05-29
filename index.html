@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Self - Premium AI Voice Bot</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Puter.js SDK (Provides keyless client-side AI) -->
+  <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+      <span class="logo-text">VirtualSelf</span>
+      <span class="logo-badge">Voice Bot</span>
+    </div>
+    
+    <div class="header-actions">
+      <!-- Status Badge -->
+      <div class="status-indicator">
+        <div id="status-dot" class="status-dot active"></div>
+        <span id="status-text">AI Twin Ready</span>
+      </div>
+      
+      <!-- Theme Toggle Button -->
+      <button id="btn-theme-toggle" class="btn-theme-toggle" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); color: var(--text-primary); width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: var(--transition-fast);" aria-label="Toggle theme">
+        <i id="theme-toggle-icon" class="fa-solid fa-sun" style="margin: 0;"></i>
+      </button>
+
+      <!-- Open Sidebar button -->
+      <button id="btn-sidebar-open" class="btn-sidebar-toggle">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Edit AI Twin</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main App Viewport -->
+  <div class="app-container">
+    
+    <!-- Central AI Voice Stage -->
+    <main class="stage">
+      
+      <!-- Central Voice Stage Area -->
+      <div class="voice-stage-center">
+        
+        <!-- Animated Voice Orb & Rings -->
+        <div class="voice-orb-container">
+          <div class="orb-glow-backdrop"></div>
+          <div id="speaking-ring-1" class="speaking-ring speaking-ring-1"></div>
+          <div id="speaking-ring-2" class="speaking-ring speaking-ring-2"></div>
+          
+          <button id="voice-orb" class="voice-orb orb-idle" aria-label="Tap to speak to AI twin">
+            <div class="voice-orb-inner">
+              <div class="orb-mesh"></div>
+              <i id="orb-icon" class="fa-solid fa-microphone voice-orb-icon"></i>
+            </div>
+          </button>
+        </div>
+        
+        <!-- Dynamic Waveform visualizer (7 bars) -->
+        <div id="waveform" class="waveform-visualizer">
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+        </div>
+
+        <!-- Orb Captions -->
+        <div class="orb-caption">
+          <h2 id="caption-title" class="caption-title">Click the Orb to Speak</h2>
+          <p id="caption-subtitle" class="caption-subtitle">Or select a quick-start question below</p>
+        </div>
+
+        <!-- Quick-Start Questions list -->
+        <div class="quick-questions-wrapper">
+          <h3 class="quick-questions-title">Quick-Start Prompts</h3>
+          <div class="quick-chips-grid">
+            <button class="question-chip" data-question="What should we know about your life story in a few sentences?">
+              <i class="fa-solid fa-book-open"></i> Life Story
+            </button>
+            <button class="question-chip" data-question="What’s your #1 superpower?">
+              <i class="fa-solid fa-bolt"></i> Superpower #1
+            </button>
+            <button class="question-chip" data-question="What are the top 3 areas you’d like to grow in?">
+              <i class="fa-solid fa-chart-line"></i> Top 3 Growth Areas
+            </button>
+            <button class="question-chip" data-question="What misconception do your coworkers have about you?">
+              <i class="fa-solid fa-eye-slash"></i> Coworkers' Misconception
+            </button>
+            <button class="question-chip" data-question="How do you push your boundaries and limits?">
+              <i class="fa-solid fa-mountain"></i> Pushing Boundaries
+            </button>
+          </div>
+        </div>
+        
+      </div>
+
+      <!-- Right Column: Transcript Feed & Vocal Settings -->
+      <div class="stage-right-panel">
+        
+        <!-- Interactive transcript log -->
+        <section class="transcript-pane" aria-label="Conversation transcript feed">
+          <div class="transcript-header">
+            <span class="transcript-header-title">
+              <i class="fa-solid fa-message"></i> Conversation Transcript
+            </span>
+            <button id="btn-clear-chat" class="btn-clear-chat">
+              <i class="fa-solid fa-trash-can"></i> Clear
+            </button>
+          </div>
+          
+          <div id="transcript-feed" class="transcript-feed">
+            <div id="transcript-placeholder" class="transcript-placeholder">
+              <i class="fa-solid fa-comments"></i>
+              <span>No conversation active. Start speaking, click a quick-start chip, or type below!</span>
+            </div>
+          </div>
+
+          <!-- Keyboard Input Form (Fallback/Accessibility) -->
+          <form id="chat-input-form" style="display: flex; border-top: 1px solid var(--border-glass); padding: 8px 12px; background: rgba(0,0,0,0.12); gap: 8px; align-items: center; justify-content: space-between; flex-shrink: 0;">
+            <input type="text" id="chat-text-input" class="form-input" style="flex: 1; padding: 8px 14px; border-radius: 999px; font-size: 0.8rem; background: rgba(255,255,255,0.02);" placeholder="Type a question and press Enter...">
+            <button type="submit" id="btn-send-chat" class="btn-primary" style="flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: none;" aria-label="Send question">
+              <i class="fa-solid fa-paper-plane" style="font-size: 0.8rem; margin: 0;"></i>
+            </button>
+          </form>
+        </section>
+
+        <!-- Audio Voice configurations & selections -->
+        <div class="voice-settings-bar">
+          <div class="voice-select-container">
+            <i class="fa-solid fa-volume-high"></i>
+            <span>Voice:</span>
+            <select id="voice-select" class="voice-select">
+              <!-- Dynamically populated by JS -->
+              <option value="">Default System Voice</option>
+            </select>
+          </div>
+          
+          <div class="voice-controls" style="display: flex; gap: 1.25rem; align-items: center;">
+            <div class="voice-control-slider">
+              <span>Speed:</span>
+              <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1.0" aria-label="Speech speed slider">
+              <span id="voice-speed-val">1.0x</span>
+            </div>
+            <div class="voice-control-slider">
+              <span>Volume:</span>
+              <input type="range" id="voice-volume" min="0" max="1" step="0.1" value="1.0" aria-label="Speech volume slider">
+              <span id="voice-volume-val">100%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Slide-Out Sidebar: Configure Persona & Fallback Key -->
+    <aside id="sidebar" class="sidebar">
+      
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">
+          <i class="fa-solid fa-gears"></i> AI Twin Configuration
+        </h2>
+        <button id="btn-sidebar-close" class="btn-sidebar-close" aria-label="Close configuration panel">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Configurable Persona Forms -->
+      <div class="sidebar-body">
+        
+        <div class="section-info">
+          Customize the core answers representing your virtual self. When you save, the bot's system instructions will instantly update!
+        </div>
+
+        <!-- Candidate Name -->
+        <div class="form-group">
+          <label for="profile-name" class="form-label">
+            <i class="fa-solid fa-user"></i> Full Name
+          </label>
+          <input type="text" id="profile-name" class="form-input" value="Raviteja Kolluri">
+        </div>
+
+        <!-- Career Focus -->
+        <div class="form-group">
+          <label for="profile-title" class="form-label">
+            <i class="fa-solid fa-briefcase"></i> Professional Title
+          </label>
+          <input type="text" id="profile-title" class="form-input" value="Advanced Full-Stack &amp; AI Agent Engineer">
+        </div>
+
+        <!-- Q1: Life Story -->
+        <div class="form-group">
+          <label for="profile-story" class="form-label">
+            <i class="fa-solid fa-book-open"></i> Life Story (1-3 sentences)
+          </label>
+          <textarea id="profile-story" class="form-input">I am a passionate software engineer and AI builder dedicated to pushing the boundaries of what is possible with code. My journey started with a deep curiosity for how systems work, which quickly evolved into building scalable full-stack applications and advanced AI agents. Today, I focus on crafting premium user experiences and automating complex workflows to solve real-world problems.</textarea>
+        </div>
+
+        <!-- Q2: Superpower -->
+        <div class="form-group">
+          <label for="profile-superpower" class="form-label">
+            <i class="fa-solid fa-bolt"></i> #1 Superpower
+          </label>
+          <textarea id="profile-superpower" class="form-input">My superpower is the ability to rapidly master complex, emerging technologies and translate them into highly polished, production-grade applications. Whether it's deep-diving into new AI frameworks or designing beautiful, intuitive UIs from scratch, I bridge the gap between complex backend intelligence and gorgeous, user-friendly frontends.</textarea>
+        </div>
+
+        <!-- Q3: Areas of Growth -->
+        <div class="form-group">
+          <label for="profile-growth" class="form-label">
+            <i class="fa-solid fa-chart-line"></i> Top 3 Growth Areas
+          </label>
+          <textarea id="profile-growth" class="form-input">1. Deepening expertise in Large Language Model (LLM) fine-tuning (specifically PEFT &amp; RLHF/DPO).
+2. Advanced system design &amp; distributed multi-agent routing architectures.
+3. Interactive browser visualizations (WebGPU, Three.js, Canvas graphics engines).</textarea>
+        </div>
+
+        <!-- Q4: Misconception -->
+        <div class="form-group">
+          <label for="profile-misconception" class="form-label">
+            <i class="fa-solid fa-eye-slash"></i> Coworkers' Misconception
+          </label>
+          <textarea id="profile-misconception" class="form-input">Because I am highly productive and can ship features very quickly, coworkers sometimes think I am a workaholic who never steps away from the screen. In reality, my speed comes from having a hyper-organized workflow, leveraging deep-focus techniques, and automating repetitive parts of my development environment. Outside of code, I love traveling, exploring nature, and recharging my creative battery.</textarea>
+        </div>
+
+        <!-- Q5: Pushing Limits -->
+        <div class="form-group">
+          <label for="profile-limits" class="form-label">
+            <i class="fa-solid fa-mountain"></i> Pushing Boundaries
+          </label>
+          <textarea id="profile-limits" class="form-input">I push my boundaries by actively stepping out of my comfort zone and tackling projects where I don't initially know the answer. I love setting high standards for myself—like building this fully functional, zero-install, hyper-premium voice bot from scratch in a matter of hours—and treating every technical challenge as an opportunity to expand my capabilities and learn something new.</textarea>
+        </div>
+
+        <!-- Section: Strengths -->
+        <div class="form-group">
+          <label for="profile-strengths" class="form-label">
+            <i class="fa-solid fa-circle-check"></i> Core Strengths
+          </label>
+          <textarea id="profile-strengths" class="form-input">Architecting modular full-stack agent systems, designing premium UI layouts with fluid micro-interactions, and rapid master of complex emerging frameworks in hours.</textarea>
+        </div>
+
+        <!-- Section: Weaknesses -->
+        <div class="form-group">
+          <label for="profile-weaknesses" class="form-label">
+            <i class="fa-solid fa-triangle-exclamation"></i> Core Weaknesses
+          </label>
+          <textarea id="profile-weaknesses" class="form-input">Aggressively automating manual development tasks out of impatience with repetition, and a tendency to spend extra hours refining micro-animations and aesthetic visual details.</textarea>
+        </div>
+
+        <!-- Section: Contact Details -->
+        <div class="form-group">
+          <label for="profile-contact" class="form-label">
+            <i class="fa-solid fa-envelope"></i> Contact Information
+          </label>
+          <textarea id="profile-contact" class="form-input">Email: raviteja.kolluri@email.com | Phone: +1 (555) 019-2834 | GitHub: github.com/ravitejakolluri | LinkedIn: linkedin.com/in/ravitejakolluri</textarea>
+        </div>
+
+        <!-- Section: Education Details -->
+        <div class="form-group">
+          <label for="profile-education" class="form-label">
+            <i class="fa-solid fa-graduation-cap"></i> Education Background
+          </label>
+          <textarea id="profile-education" class="form-input">Bachelor of Science in Computer Science, specialized in Intelligent Systems and Advanced Software Architectures (Honors).</textarea>
+        </div>
+
+        <!-- Section: Employment Details -->
+        <div class="form-group">
+          <label for="profile-employment" class="form-label">
+            <i class="fa-solid fa-briefcase"></i> Employment History
+          </label>
+          <textarea id="profile-employment" class="form-input">Lead AI Developer at Agentic Labs (2024 - Present): Pioneered multi-agent pipeline automation. | Senior Full-Stack Engineer at SynthCode (2021 - 2024): Built advanced developer toolkits and responsive cloud panels.</textarea>
+        </div>
+
+        <!-- Optional: API Key Collapse settings for robust fallback -->
+        <div id="collapsible-settings" class="collapsible-settings">
+          <div id="collapsible-toggle" class="collapsible-header">
+            <span class="collapsible-header-title">
+              <i class="fa-solid fa-key"></i> Custom API Key (Fallback)
+            </span>
+            <i id="collapsible-icon" class="fa-solid fa-chevron-down collapsible-icon"></i>
+          </div>
+          
+          <div class="collapsible-content">
+            <div class="section-info">
+              Completely optional! By default, this app queries Puter's keyless free AI service. Use this section if you wish to run on your own key.
+            </div>
+            
+            <div class="form-group">
+              <label for="api-provider" class="form-label">LLM Provider</label>
+              <select id="api-provider" class="form-input">
+                <option value="puter">Puter AI (Keyless - Free)</option>
+                <option value="openai">OpenAI API (GPT-4o-mini)</option>
+                <option value="gemini">Gemini API (Gemini 1.5 Flash)</option>
+              </select>
+            </div>
+            
+            <div class="form-group" id="api-key-group" style="display: none;">
+              <label for="api-key" class="form-label">API Key</label>
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="password" id="api-key" class="form-input" style="flex: 1; padding-right: 35px;" placeholder="sk-...">
+                <button id="btn-toggle-key-visibility" type="button" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer;" aria-label="Toggle password visibility">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar Actions -->
+      <div class="sidebar-footer">
+        <button id="btn-reset-profile" class="btn-secondary">Reset Defaults</button>
+        <button id="btn-save-profile" class="btn-primary">
+          <i class="fa-solid fa-floppy-disk"></i> Save Persona
+        </button>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- Status Toast Notifications -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-message">Action completed successfully!</span>
+  </div>
+
+  <!-- Client JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
