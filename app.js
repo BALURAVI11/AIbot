@@ -622,8 +622,42 @@ function formatConversationalResponse(type, content) {
   }
   
   if (type === "employment") {
+    const parts = content.split("|").map(p => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      // Parse Part 1
+      const part1 = parts[0];
+      const colon1 = part1.indexOf(":");
+      let role1 = "my first role";
+      let desc1 = part1;
+      if (colon1 !== -1) {
+        role1 = part1.substring(0, colon1).replace(/\(\d{4}[^\)]*\)/g, "").replace(/\s+/g, " ").trim();
+        desc1 = part1.substring(colon1 + 1).trim();
+      }
+      
+      // Parse Part 2
+      const part2 = parts[1];
+      const colon2 = part2.indexOf(":");
+      let role2 = "my second role";
+      let desc2 = part2;
+      if (colon2 !== -1) {
+        role2 = part2.substring(0, colon2).replace(/\(\d{4}[^\)]*\)/g, "").replace(/\s+/g, " ").trim();
+        desc2 = part2.substring(colon2 + 1).trim();
+      }
+      
+      // Extract brief project nouns for the intro
+      const cleanDesc1 = desc1.replace(/^(pioneered|built|created|developed|designed|managed|implemented|focused on)\s+/i, "").replace(/\.$/, "").trim();
+      const cleanDesc2 = desc2.replace(/^(pioneered|built|created|developed|designed|managed|implemented|focused on)\s+/i, "").replace(/\.$/, "").trim();
+      
+      // Convert initial verbs like "Pioneered" or "Built" to gerunds for smooth flow if necessary, or keep simple
+      const action1 = desc1.replace(/\.$/, "").trim();
+      const action2 = desc2.replace(/\.$/, "").trim();
+      
+      return `I have developed two key projects. These projects are a ${cleanDesc1} and ${cleanDesc2}. First, the ${cleanDesc1} is based on my role as ${role1}, where I ${action1.charAt(0).toLowerCase() + action1.slice(1)}. Second, the ${cleanDesc2} is based on my time as ${role2}, which involved ${action2.charAt(0).toLowerCase() + action2.slice(1)}.`;
+    }
+    
+    // Fallback if not 2 parts
     const cleanPipes = clean.replace(/\s*\|\s*/g, ". ").replace(/\s*\.+\s*/g, ". ").trim();
-    return `Here is a summary of my professional experience and projects: ${cleanPipes}. I always aim to design high-performance architectures and highly polished user experiences.`;
+    return `I have developed projects in my career. Here is my professional history: ${cleanPipes}.`;
   }
   
   if (type === "superpower") {
