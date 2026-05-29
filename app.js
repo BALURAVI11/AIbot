@@ -573,35 +573,35 @@ function getLocalFallbackResponse(question) {
   }
   
   // Interceptors for the 5 new configuration fields
-  if (q.includes("strength") || q.includes("strengths") || q.includes("strong") || q.includes("good at") || q.includes("best skills")) {
+  if (q.includes("strengths") || q.includes("core strengths") || q.includes("what are your strengths") || q.includes("what are you good at") || q.includes("what is your specialty")) {
     return formatConversationalResponse("strengths", profile.strengths);
   }
-  if (q.includes("weakness") || q.includes("weaknesses") || q.includes("flaw") || q.includes("flaws") || q.includes("bad at")) {
+  if (q.includes("weaknesses") || q.includes("key weaknesses") || q.includes("what are your weaknesses") || q.includes("areas of improvement")) {
     return formatConversationalResponse("weaknesses", profile.weaknesses);
   }
-  if (q.includes("contact") || q.includes("email") || q.includes("phone") || q.includes("github") || q.includes("linkedin") || q.includes("reach out")) {
+  if (q.includes("contact") || q.includes("email") || q.includes("phone number") || q.includes("reach out") || q.includes("how to contact")) {
     return `You can find my contact details here: ${profile.contact}.`;
   }
-  if (q.includes("education") || q.includes("college") || q.includes("university") || q.includes("degree") || q.includes("study") || q.includes("studies") || q.includes("academics")) {
+  if (q.includes("education") || q.includes("college") || q.includes("university") || q.includes("degree") || q.includes("where did you study") || q.includes("academic background")) {
     return `Here is my academic background: ${profile.education}`;
   }
-  if (q.includes("employment") || q.includes("experience") || q.includes("work") || q.includes("job") || q.includes("career") || q.includes("history") || q.includes("worked") || q.includes("company") || q.includes("project") || q.includes("projects") || q.includes("portfolio") || q.includes("app") || q.includes("apps") || q.includes("built") || q.includes("created") || q.includes("made")) {
+  if (q.includes("employment history") || q.includes("work history") || q.includes("job history") || q.includes("career history") || q.includes("professional experience") || q.includes("where did you work") || q.includes("previous companies") || q.includes("project") || q.includes("projects") || q.includes("portfolio") || q.includes("what have you built") || q.includes("apps you built")) {
     return formatConversationalResponse("employment", profile.employment);
   }
   
-  if (q.includes("story") || q.includes("life") || q.includes("biography") || q.includes("who are you") || q.includes("introduce")) {
+  if (q.includes("life story") || q.includes("biography") || q.includes("who are you") || q.includes("introduce yourself") || q.includes("your background")) {
     return formatConversationalResponse("story", profile.story);
   }
-  if (q.includes("superpower") || q.includes("strength") || q.includes("power") || q.includes("specialty") || q.includes("super")) {
+  if (q.includes("superpower") || q.includes("what is your superpower") || q.includes("#1 superpower") || q.includes("main superpower")) {
     return formatConversationalResponse("superpower", profile.superpower);
   }
-  if (q.includes("grow") || q.includes("growth") || q.includes("weakness") || q.includes("improve") || q.includes("learn") || q.includes("3 areas")) {
+  if (q.includes("growth areas") || q.includes("to grow") || q.includes("areas you'd like to grow") || q.includes("growth goals")) {
     return formatConversationalResponse("growth", profile.growth);
   }
-  if (q.includes("misconception") || q.includes("coworker") || q.includes("colleague") || q.includes("misunderstand") || q.includes("perceive")) {
+  if (q.includes("misconception") || q.includes("coworker") || q.includes("misunderstand") || q.includes("misconceptions")) {
     return formatConversationalResponse("misconception", profile.misconception);
   }
-  if (q.includes("boundary") || q.includes("limit") || q.includes("push") || q.includes("comfort") || q.includes("limitations")) {
+  if (q.includes("boundary") || q.includes("boundaries") || q.includes("limits") || q.includes("comfort zone") || q.includes("pushing boundaries")) {
     return formatConversationalResponse("limits", profile.limits);
   }
   
@@ -609,10 +609,10 @@ function getLocalFallbackResponse(question) {
   if (q.includes("interest") || q.includes("hobby") || q.includes("hobbies") || q.includes("outside of work") || q.includes("leisure") || q.includes("free time")) {
     return "Outside of software engineering, I love traveling, exploring nature, and recharging my creative battery. I also enjoy researching the latest breakthroughs in AI agent architectures and deep learning models.";
   }
-  if (q.includes("stack") || q.includes("tech") || q.includes("language") || q.includes("programming") || q.includes("javascript") || q.includes("python") || q.includes("node")) {
+  if (q.includes("tech stack") || q.includes("what technologies") || q.includes("development stack") || q.includes("programming languages you") || q.includes("what languages do you know")) {
     return `I specialize in full-stack engineering and AI agent systems. My core development stack includes JavaScript, Node.js, Python, HTML5, Vanilla CSS, and modern framework integrations.`;
   }
-  if (q.includes("experience") || q.includes("work") || q.includes("job") || q.includes("career") || q.includes("background")) {
+  if (q.includes("professional background") || q.includes("brief career history") || q.includes("career background")) {
     return `I have a strong background in software engineering, focused on designing full-stack applications and advanced AI agent workflows that automate operations and deliver premium user experiences.`;
   }
   
