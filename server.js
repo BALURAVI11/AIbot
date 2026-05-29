@@ -84,7 +84,7 @@ const server = http.createServer((req, res) => {
               parts: [{ text: prompt }]
             }],
             generationConfig: {
-              maxOutputTokens: 150,
+              maxOutputTokens: 500,
               temperature: 0.7
             }
           })

@@ -481,6 +481,7 @@ function speakText(text) {
   const cleanText = text.replace(/[\*\_\`\#\-]/g, "").trim();
   
   activeUtterance = new SpeechSynthesisUtterance(cleanText);
+  window.activeUtterance = activeUtterance; // Prevent garbage collection mid-speech in Chrome
   
   if (selectedVoice) {
     activeUtterance.voice = selectedVoice;
@@ -787,7 +788,7 @@ AI Twin Response:`;
           parts: [{ text: fullPrompt }]
         }],
         generationConfig: {
-          maxOutputTokens: 150,
+          maxOutputTokens: 500,
           temperature: 0.7
         }
       })
