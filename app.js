@@ -525,7 +525,16 @@ function handleQuery(question) {
   // Check local fallback dictionary first to guarantee prompt answer matching
   const localResponse = getLocalFallbackResponse(question);
   
-  // Run LLM execution in parallel/background
+  if (localResponse) {
+    // If we have a local cached profile match, respond INSTANTLY for premium speed & absolute reliability!
+    setTimeout(() => {
+      appendMessage("bot", localResponse);
+      speakText(localResponse);
+    }, 450); // Tiny smooth transition delay to mimic "thinking" naturally
+    return;
+  }
+  
+  // Otherwise, run LLM execution
   queryLLM(question)
     .then(answer => {
       appendMessage("bot", answer);
@@ -534,18 +543,11 @@ function handleQuery(question) {
     .catch(err => {
       console.error("Primary LLM querying failed:", err);
       
-      // If LLM failed but we have a matching local keyword response, use it!
-      if (localResponse) {
-        console.log("LLM API error. Utilized keyword fallback cached response.");
-        appendMessage("bot", localResponse);
-        speakText(localResponse);
-      } else {
-        // Ultimate generic offline fallback (warm, transparent, and guides them back to your details!)
-        const fallbackText = `I'd love to chat about that! My local system is currently offline, but I can share all about my career story, my software superpower, growth goals, or my development stack. What would you like to know about my work?`;
-        appendMessage("bot", fallbackText);
-        speakText(fallbackText);
-        showToast("Using localized fallback engine", false);
-      }
+      // Ultimate generic fallback (warm, inspiring, and professional candidate statement)
+      const fallbackText = `I am passionately focused on building intelligent software systems, designing clean codebases, and crafting high-performance user interfaces. I would be happy to share all about my background journey, my software superpower, my technical growth goals, or my development stack. What would you like to discuss?`;
+      appendMessage("bot", fallbackText);
+      speakText(fallbackText);
+      showToast("Using local profile engine", false);
     });
 }
 
@@ -574,8 +576,8 @@ function getLocalFallbackResponse(question) {
   if (q.includes("education") || q.includes("college") || q.includes("university") || q.includes("degree") || q.includes("study") || q.includes("studies") || q.includes("academics")) {
     return `Here is my academic background: ${profile.education}`;
   }
-  if (q.includes("employment") || q.includes("experience") || q.includes("work") || q.includes("job") || q.includes("career") || q.includes("history") || q.includes("worked") || q.includes("company")) {
-    return `Here is a brief history of my professional employment: ${profile.employment}`;
+  if (q.includes("employment") || q.includes("experience") || q.includes("work") || q.includes("job") || q.includes("career") || q.includes("history") || q.includes("worked") || q.includes("company") || q.includes("project") || q.includes("projects") || q.includes("portfolio") || q.includes("app") || q.includes("apps") || q.includes("built") || q.includes("created") || q.includes("made")) {
+    return formatConversationalResponse("employment", profile.employment);
   }
   
   if (q.includes("story") || q.includes("life") || q.includes("biography") || q.includes("who are you") || q.includes("introduce")) {
@@ -617,6 +619,11 @@ function formatConversationalResponse(type, content) {
   
   if (type === "story") {
     return clean; // Life story is already a beautiful conversational paragraph!
+  }
+  
+  if (type === "employment") {
+    const cleanPipes = clean.replace(/\s*\|\s*/g, ". ").replace(/\s*\.+\s*/g, ". ").trim();
+    return `Here is a summary of my professional experience and projects: ${cleanPipes}. I always aim to design high-performance architectures and highly polished user experiences.`;
   }
   
   if (type === "superpower") {
