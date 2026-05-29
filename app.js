@@ -560,6 +560,9 @@ function getLocalFallbackResponse(question) {
   const q = question.toLowerCase();
   
   // Specific checks for name and title configuration fields
+  if (q.includes("personal") || q.includes("perosnal") || q.includes("personel") || q.includes("details") || q.includes("detail") || q.includes("profile") || q.includes("about you") || q.includes("about yourself")) {
+    return `My name is ${profile.name}, and I am an experienced ${profile.title}. Here is a quick introduction: ${formatConversationalResponse("story", profile.story)} You can find my contact details here: ${profile.contact}.`;
+  }
   if (q.includes("name") || q.includes("full name") || q.includes("your name") || q.includes("identify")) {
     return `My name is ${profile.name}, and I am an experienced ${profile.title}.`;
   }
