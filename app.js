@@ -798,13 +798,13 @@ AI Twin Response:`;
       }
       throw new Error(data.error || "Empty response from serverless endpoint");
     } catch (err) {
-      console.warn("Serverless Gemini endpoint failed, attempting keyless Puter fallback...", err);
-      // Fallback to keyless Puter AI to guarantee the user gets a proper response!
+      console.warn("Serverless Gemini endpoint failed, attempting keyless Puter Gemini fallback...", err);
+      // Fallback to keyless Puter Gemini to guarantee the user gets a proper response!
       try {
-        const response = await puter.ai.chat(fullPrompt, { model: "gpt-4o-mini" });
+        const response = await puter.ai.chat(fullPrompt, { model: "gemini-1.5-flash" });
         if (response && response.trim()) return response.trim();
       } catch (puterErr) {
-        console.error("Keyless Puter fallback failed as well:", puterErr);
+        console.error("Keyless Puter Gemini fallback failed as well:", puterErr);
       }
       throw err;
     }
