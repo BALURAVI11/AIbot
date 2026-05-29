@@ -547,11 +547,13 @@ function handleQuery(question) {
     .catch(err => {
       console.error("Primary LLM querying failed:", err);
       
-      // Ultimate generic fallback (warm, inspiring, and professional candidate statement)
-      const fallbackText = `I am passionately focused on building intelligent software systems, designing clean codebases, and crafting high-performance user interfaces. I would be happy to share all about my background journey, my software superpower, my technical growth goals, or my development stack. What would you like to discuss?`;
-      appendMessage("bot", fallbackText);
-      speakText(fallbackText);
-      showToast("Using local profile engine", false);
+      // If the query is unrelated to candidate details and the LLM fails,
+      // present a helpful explanation of the missing configuration instead of repeating the bio!
+      const errorMsg = `I would love to answer that! However, my Gemini AI engine is currently not configured or is experiencing a connection issue. If you are the administrator, you can easily resolve this by opening the "Personal Details" panel in the top-right and adding a valid Gemini API Key, or by configuring the GEMINI_API_KEY environment variable securely in Vercel.`;
+      
+      appendMessage("bot", errorMsg);
+      speakText(errorMsg);
+      showToast("Gemini API key is required", true);
     });
 }
 
