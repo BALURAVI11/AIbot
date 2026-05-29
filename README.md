@@ -87,18 +87,15 @@ The system is highly flexible and built so **anyone** can test it with their own
 
 ---
 
-## 🔑 Optional API Key Fallback (Completely Free & Custom)
+## 🔑 Optional API Key Fallback (Direct & Serverless)
 
-While the bot runs completely **free and keyless** out-of-the-box using Puter's developer cloud, we have provided an elegant fallback dashboard for recruiters or power-users who want to connect their own keys:
+By default, the application runs on **Google Gemini AI** (powered by `gemini-2.5-flash`) using the securely pre-configured `HARDCODED_GEMINI_API_KEY` in `app.js` or via the Vercel serverless proxy, making it completely out-of-the-box functional for all visiting users.
 
+If you are a power-user or want to override the default key:
 1.  Open the **Personal Details** panel in the top right.
-2.  Scroll to the bottom and expand **Custom API Key (Fallback)**.
-3.  Choose your preferred LLM Provider:
-    *   **Puter AI**: (Default) Keyless and free.
-    *   **OpenAI API**: Runs on `gpt-4o-mini`.
-    *   **Gemini API**: Runs on `gemini-1.5-flash`.
-4.  Paste your **API Key** (e.g., `sk-...` or Google Key) and click **Save Details**.
-5.  *Security Note: Your keys are processed strictly inside your own browser window. They are saved only to your local machine (`localStorage`) and are never sent to any third-party servers, guaranteeing full privacy.*
+2.  Scroll to the bottom and expand **Gemini API Key (Fallback)**.
+3.  Paste your own **Gemini API Key** and click **Save Details**.
+4.  *Security Note: Your key is processed strictly inside your own browser window. It is saved only to your local machine (`localStorage`) and is never sent to any third-party servers, guaranteeing full privacy.*
 
 ---
 

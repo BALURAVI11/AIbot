@@ -777,7 +777,7 @@ AI Twin Response:`;
 
   if (clientKey) {
     // Direct client-side Gemini AI call
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientKey}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientKey}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

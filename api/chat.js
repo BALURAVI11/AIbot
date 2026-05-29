@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const apiResponse = await fetch(apiURL, {
       method: "POST",
       headers: {
