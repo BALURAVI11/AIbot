@@ -547,12 +547,11 @@ function handleQuery(question) {
     .catch(err => {
       console.error("Primary LLM querying failed:", err);
       
-      // If the query is unrelated to candidate details and the LLM fails,
-      // present a helpful explanation of the missing configuration instead of repeating the bio!
-      const errorMsg = `I would love to answer that! However, my Gemini AI engine is currently not configured or is experiencing a connection issue. If you are the administrator, you can easily resolve this by opening the "Personal Details" panel in the top-right and adding a valid Gemini API Key, or by configuring the GEMINI_API_KEY environment variable securely in Vercel.`;
+      const userFriendlyMsg = "I’m sorry, I couldn’t process that properly right now. Could you please try asking again?";
+      const technicalMsg = `I would love to answer that! However, my Gemini AI engine is currently not configured or is experiencing a connection issue. If you are the administrator, you can easily resolve this by opening the "Personal Details" panel in the top-right and adding a valid Gemini API Key, or by configuring the GEMINI_API_KEY environment variable securely in Vercel. (Technical Error: ${err.message})`;
       
-      appendMessage("bot", errorMsg);
-      speakText(errorMsg);
+      appendMessage("bot", userFriendlyMsg, technicalMsg);
+      speakText(userFriendlyMsg);
       showToast("Gemini API key is required", true);
     });
 }
@@ -837,7 +836,7 @@ function loadChatHistory() {
       if (conversationHistory.length > 0) {
         DOM.transcriptPlaceholder.style.display = "none";
         conversationHistory.forEach(msg => {
-          renderMessageDOM(msg.sender, msg.text);
+          renderMessageDOM(msg.sender, msg.text, msg.errorDetails);
         });
       }
     } catch (e) {
@@ -847,13 +846,13 @@ function loadChatHistory() {
   }
 }
 
-function appendMessage(sender, text) {
-  conversationHistory.push({ sender, text });
+function appendMessage(sender, text, errorDetails) {
+  conversationHistory.push({ sender, text, errorDetails });
   localStorage.setItem("virtual_self_chat_history", JSON.stringify(conversationHistory));
-  renderMessageDOM(sender, text);
+  renderMessageDOM(sender, text, errorDetails);
 }
 
-function renderMessageDOM(sender, text) {
+function renderMessageDOM(sender, text, errorDetails) {
   // Hide placeholder
   DOM.transcriptPlaceholder.style.display = "none";
   
@@ -866,7 +865,60 @@ function renderMessageDOM(sender, text) {
   
   const bubbleDiv = document.createElement("div");
   bubbleDiv.className = "message-bubble";
-  bubbleDiv.textContent = text;
+  
+  const textSpan = document.createElement("span");
+  textSpan.textContent = text;
+  bubbleDiv.appendChild(textSpan);
+  
+  if (errorDetails) {
+    const errorContainer = document.createElement("div");
+    errorContainer.className = "error-details-container";
+    errorContainer.style.marginTop = "8px";
+    errorContainer.style.fontSize = "0.85em";
+    
+    const toggleLink = document.createElement("a");
+    toggleLink.href = "#";
+    toggleLink.className = "error-toggle-link";
+    toggleLink.textContent = "Get more";
+    toggleLink.style.color = "var(--accent-indigo, #06b6d4)";
+    toggleLink.style.textDecoration = "underline";
+    toggleLink.style.cursor = "pointer";
+    toggleLink.style.display = "inline-block";
+    toggleLink.style.marginTop = "4px";
+    toggleLink.style.fontWeight = "600";
+    
+    const detailsDiv = document.createElement("div");
+    detailsDiv.className = "error-details-text";
+    detailsDiv.textContent = errorDetails;
+    detailsDiv.style.display = "none";
+    detailsDiv.style.marginTop = "8px";
+    detailsDiv.style.padding = "10px";
+    detailsDiv.style.borderRadius = "8px";
+    detailsDiv.style.background = "rgba(0, 0, 0, 0.25)";
+    detailsDiv.style.borderLeft = "3px solid #ef4444";
+    detailsDiv.style.wordBreak = "break-word";
+    detailsDiv.style.color = "var(--text-secondary, #cbd5e1)";
+    
+    toggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (detailsDiv.style.display === "none") {
+        detailsDiv.style.display = "block";
+        toggleLink.textContent = "Show less";
+      } else {
+        detailsDiv.style.display = "none";
+        toggleLink.textContent = "Get more";
+      }
+      
+      // Auto-scroll to show full details smoothly
+      setTimeout(() => {
+        DOM.transcriptFeed.scrollTop = DOM.transcriptFeed.scrollHeight;
+      }, 50);
+    });
+    
+    errorContainer.appendChild(toggleLink);
+    errorContainer.appendChild(detailsDiv);
+    bubbleDiv.appendChild(errorContainer);
+  }
   
   msgDiv.appendChild(labelSpan);
   msgDiv.appendChild(bubbleDiv);
