@@ -3,9 +3,7 @@
  * Orchestrates Speech APIs, Google Gemini AI, and Orb States.
  */
 
-// Securely base64-encoded default key to bypass automated push protection scanning
-const ENCODED_KEY = "QVEuQWI4Uk42STFxMDY5RlN1VGx2N2JSWGJPN3ZvTWs0a193NklEY3NuSFVpMVV2TXJaS0E=";
-const HARDCODED_GEMINI_API_KEY = atob(ENCODED_KEY);
+
 
 // 1. Default Profile Definition (representing Raviteja Kolluri)
 const DEFAULT_PROFILE = {
@@ -21,8 +19,7 @@ const DEFAULT_PROFILE = {
   contact: "Email: raviteja.kolluri@email.com | Phone: +1 (555) 019-2834 | GitHub: github.com/ravitejakolluri | LinkedIn: linkedin.com/in/ravitejakolluri",
   education: "Bachelor of Science in Computer Science, specialized in Intelligent Systems and Advanced Software Architectures (Honors).",
   employment: "Lead AI Developer at Agentic Labs (2024 - Present): Pioneered multi-agent pipeline automation. | Senior Full-Stack Engineer at SynthCode (2021 - 2024): Built advanced developer toolkits and responsive cloud panels.",
-  provider: "gemini",
-  apiKey: ""
+  provider: "gemini"
 };
 
 // 2. Global State Machine
@@ -71,12 +68,6 @@ const DOM = {
   inputContact: document.getElementById("profile-contact"),
   inputEducation: document.getElementById("profile-education"),
   inputEmployment: document.getElementById("profile-employment"),
-  
-  // API settings
-  collapsibleSettings: document.getElementById("collapsible-settings"),
-  collapsibleToggle: document.getElementById("collapsible-toggle"),
-  apiKey: document.getElementById("api-key"),
-  btnToggleKeyVisibility: document.getElementById("btn-toggle-key-visibility"),
   
   // Transcript elements
   transcriptFeed: document.getElementById("transcript-feed"),
@@ -204,7 +195,6 @@ function loadProfile() {
   DOM.inputContact.value = profile.contact;
   DOM.inputEducation.value = profile.education;
   DOM.inputEmployment.value = profile.employment;
-  DOM.apiKey.value = profile.apiKey || "";
 }
 
 function saveProfile() {
@@ -221,7 +211,6 @@ function saveProfile() {
   profile.education = DOM.inputEducation.value.trim() || DEFAULT_PROFILE.education;
   profile.employment = DOM.inputEmployment.value.trim() || DEFAULT_PROFILE.employment;
   profile.provider = "gemini";
-  profile.apiKey = DOM.apiKey.value.trim();
   
   localStorage.setItem("virtual_self_profile", JSON.stringify(profile));
   showToast("Personal Details Saved!", false);
@@ -251,17 +240,6 @@ function initUIListeners() {
   DOM.btnSidebarClose.addEventListener("click", () => DOM.sidebar.classList.remove("open"));
   DOM.btnSaveProfile.addEventListener("click", saveProfile);
   DOM.btnResetProfile.addEventListener("click", resetProfile);
-  
-  // Collapsible toggle for custom API
-  DOM.collapsibleToggle.addEventListener("click", () => {
-    DOM.collapsibleSettings.classList.toggle("expanded");
-  });
-  
-  DOM.btnToggleKeyVisibility.addEventListener("click", () => {
-    const isPassword = DOM.apiKey.type === "password";
-    DOM.apiKey.type = isPassword ? "text" : "password";
-    DOM.btnToggleKeyVisibility.querySelector("i").className = isPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
-  });
   
   // Click Orb actions
   DOM.voiceOrb.addEventListener("click", handleOrbClick);
@@ -548,11 +526,11 @@ function handleQuery(question) {
       console.error("Primary LLM querying failed:", err);
       
       const userFriendlyMsg = "I’m sorry, I couldn’t process that properly right now. Could you please try asking again?";
-      const technicalMsg = `I would love to answer that! However, my Gemini AI engine is currently not configured or is experiencing a connection issue. If you are the administrator, you can easily resolve this by opening the "Personal Details" panel in the top-right and adding a valid Gemini API Key, or by configuring the GEMINI_API_KEY environment variable securely in Vercel. (Technical Error: ${err.message})`;
+      const technicalMsg = `A connection error occurred. Please verify your system's network connection and try again. (Technical details: ${err.message})`;
       
       appendMessage("bot", userFriendlyMsg, technicalMsg);
       speakText(userFriendlyMsg);
-      showToast("Gemini API key is required", true);
+      showToast("API connection error occurred", true);
     });
 }
 
@@ -774,57 +752,25 @@ IMPORTANT INSTRUCTIONS:
 User's Question: "${question}"
 AI Twin Response:`;
 
-  const clientKey = profile.apiKey || HARDCODED_GEMINI_API_KEY;
-
-  if (clientKey) {
-    // Direct client-side Gemini AI call
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientKey}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: fullPrompt }]
-        }],
-        generationConfig: {
-          maxOutputTokens: 500,
-          temperature: 0.7
-        }
-      })
-    });
-    
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(`Gemini API client-side HTTP ${res.status}: ${errBody}`);
-    }
-    
-    const data = await res.json();
-    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
-      return data.candidates[0].content.parts[0].text.trim();
-    }
-    throw new Error("Invalid response format from Gemini API");
-  } else {
-    // Vercel Serverless Function Proxy for Gemini if key is not configured client-side
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt: fullPrompt })
-    });
-    
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `Serverless Proxy HTTP ${res.status}`);
-    }
-    
-    const data = await res.json();
-    if (data.answer) {
-      return data.answer.trim();
-    }
-    throw new Error(data.error || "Empty response from serverless endpoint");
+  // Vercel Serverless Function Proxy for Gemini is the primary engine setup
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt: fullPrompt })
+  });
+  
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || `Serverless Proxy HTTP ${res.status}`);
   }
+  
+  const data = await res.json();
+  if (data.answer) {
+    return data.answer.trim();
+  }
+  throw new Error(data.error || "Empty response from serverless endpoint");
 }
 
 // 12. Transcript Render utilities
