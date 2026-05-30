@@ -540,13 +540,13 @@ function getLocalFallbackResponse(question) {
   
   // Specific checks for name and title configuration fields
   if (q.includes("personal") || q.includes("perosnal") || q.includes("personel") || q.includes("details") || q.includes("detail") || q.includes("profile") || q.includes("about you") || q.includes("about yourself")) {
-    return `My name is ${profile.name}, and I am an experienced ${profile.title}. Here is a quick introduction: ${formatConversationalResponse("story", profile.story)} You can find my contact details here: ${profile.contact}.`;
+    return `Hi, I'm ${profile.name}, an experienced ${profile.title}. ${formatConversationalResponse("story", profile.story)} You can reach me directly at ${profile.contact}.`;
   }
   if (q.includes("name") || q.includes("full name") || q.includes("your name") || q.includes("identify")) {
-    return `My name is ${profile.name}, and I am an experienced ${profile.title}.`;
+    return `I am ${profile.name}, and I work as an experienced ${profile.title}.`;
   }
   if (q.includes("title") || q.includes("role") || q.includes("profession") || q.includes("what do you do") || q.includes("job title")) {
-    return `I am an experienced ${profile.title}. I focus on automating complex workflows, building agentic AI setups, and crafting premium frontends.`;
+    return `I am an experienced ${profile.title}. My core focus is on automating complex workflows, building intelligent agentic AI setups, and crafting gorgeous frontends.`;
   }
   
   // Interceptors for the 5 new configuration fields
@@ -557,10 +557,10 @@ function getLocalFallbackResponse(question) {
     return formatConversationalResponse("weaknesses", profile.weaknesses);
   }
   if (q.includes("contact") || q.includes("email") || q.includes("phone number") || q.includes("reach out") || q.includes("how to contact")) {
-    return `You can find my contact details here: ${profile.contact}.`;
+    return `You can reach me directly at: ${profile.contact}.`;
   }
   if (q.includes("education") || q.includes("college") || q.includes("university") || q.includes("degree") || q.includes("where did you study") || q.includes("academic background")) {
-    return `Here is my academic background: ${profile.education}`;
+    return formatConversationalResponse("education", profile.education);
   }
   if (q.includes("employment history") || q.includes("work history") || q.includes("job history") || q.includes("career history") || q.includes("professional experience") || q.includes("where did you work") || q.includes("previous companies") || q.includes("project") || q.includes("projects") || q.includes("portfolio") || q.includes("what have you built") || q.includes("apps you built")) {
     return formatConversationalResponse("employment", profile.employment);
@@ -584,10 +584,10 @@ function getLocalFallbackResponse(question) {
   
   // Custom smart additions for common conversational queries:
   if (q.includes("interest") || q.includes("hobby") || q.includes("hobbies") || q.includes("outside of work") || q.includes("leisure") || q.includes("free time")) {
-    return "Outside of software engineering, I love traveling, exploring nature, and recharging my creative battery. I also enjoy researching the latest breakthroughs in AI agent architectures and deep learning models.";
+    return "Outside of coding, I love traveling, exploring nature, and recharging my creative battery. I also enjoy researching the latest breakthroughs in AI agent architectures and deep learning models.";
   }
   if (q.includes("tech stack") || q.includes("what technologies") || q.includes("development stack") || q.includes("programming languages you") || q.includes("what languages do you know")) {
-    return `I specialize in full-stack engineering and AI agent systems. My core development stack includes JavaScript, Node.js, Python, HTML5, Vanilla CSS, and modern framework integrations.`;
+    return `I specialize in full-stack engineering and AI agent systems. My core stack includes JavaScript, Node.js, Python, HTML5, Vanilla CSS, and modern framework integrations.`;
   }
   if (q.includes("professional background") || q.includes("brief career history") || q.includes("career background")) {
     return `I have a strong background in software engineering, focused on designing full-stack applications and advanced AI agent workflows that automate operations and deliver premium user experiences.`;
@@ -697,6 +697,16 @@ function formatConversationalResponse(type, content) {
       return clean;
     }
     return `I push my boundaries and limits by ${clean.charAt(0).toLowerCase() + clean.slice(1)}`;
+  }
+
+  if (type === "education") {
+    const firstWord = clean.split(" ")[0].toLowerCase();
+    if (firstWord === "i" || firstWord === "i've" || firstWord === "my" || firstWord === "completed" || firstWord === "graduated") {
+      return clean;
+    }
+    // Convert third person/impersonal sentences to direct first-person completion format
+    const cleanLower = clean.charAt(0).toLowerCase() + clean.slice(1);
+    return `I completed my ${cleanLower}`;
   }
   
   return clean;
