@@ -534,65 +534,37 @@ function handleQuery(question) {
     });
 }
 
-// Smart keyword scanning that returns precise, stored answers if requested
+// Smart keyword scanning that returns precise, stored answers ONLY for the 5 core quick-start questions
 function getLocalFallbackResponse(question) {
-  const q = question.toLowerCase();
+  const q = question.toLowerCase().trim();
   
-  // Specific checks for name and title configuration fields
-  if (q.includes("personal") || q.includes("perosnal") || q.includes("personel") || q.includes("details") || q.includes("detail") || q.includes("profile") || q.includes("about you") || q.includes("about yourself")) {
-    return `Hi, I'm ${profile.name}, an experienced ${profile.title}. ${formatConversationalResponse("story", profile.story)} You can reach me directly at ${profile.contact}.`;
-  }
-  if (q.includes("name") || q.includes("full name") || q.includes("your name") || q.includes("identify")) {
-    return `I am ${profile.name}, and I work as an experienced ${profile.title}.`;
-  }
-  if (q.includes("title") || q.includes("role") || q.includes("profession") || q.includes("what do you do") || q.includes("job title")) {
-    return `I am an experienced ${profile.title}. My core focus is on automating complex workflows, building intelligent agentic AI setups, and crafting gorgeous frontends.`;
-  }
-  
-  // Interceptors for the 5 new configuration fields
-  if (q.includes("strengths") || q.includes("core strengths") || q.includes("what are your strengths") || q.includes("what are you good at") || q.includes("what is your specialty")) {
-    return formatConversationalResponse("strengths", profile.strengths);
-  }
-  if (q.includes("weaknesses") || q.includes("key weaknesses") || q.includes("what are your weaknesses") || q.includes("areas of improvement")) {
-    return formatConversationalResponse("weaknesses", profile.weaknesses);
-  }
-  if (q.includes("contact") || q.includes("email") || q.includes("phone number") || q.includes("reach out") || q.includes("how to contact")) {
-    return `You can reach me directly at: ${profile.contact}.`;
-  }
-  if (q.includes("education") || q.includes("college") || q.includes("university") || q.includes("degree") || q.includes("where did you study") || q.includes("academic background")) {
-    return formatConversationalResponse("education", profile.education);
-  }
-  if (q.includes("employment history") || q.includes("work history") || q.includes("job history") || q.includes("career history") || q.includes("professional experience") || q.includes("where did you work") || q.includes("previous companies") || q.includes("project") || q.includes("projects") || q.includes("portfolio") || q.includes("what have you built") || q.includes("apps you built")) {
-    return formatConversationalResponse("employment", profile.employment);
-  }
-  
-  if (q.includes("life story") || q.includes("biography") || q.includes("who are you") || q.includes("introduce yourself") || q.includes("your background")) {
+  // 1. Life Story
+  if (q.includes("life story") || q.includes("introduce yourself") || q.includes("who are you") || q.includes("your life story")) {
     return formatConversationalResponse("story", profile.story);
   }
-  if (q.includes("superpower") || q.includes("what is your superpower") || q.includes("#1 superpower") || q.includes("main superpower")) {
+  
+  // 2. Superpower
+  if (q.includes("superpower") || q.includes("what is your superpower") || q.includes("superpower #1")) {
     return formatConversationalResponse("superpower", profile.superpower);
   }
-  if (q.includes("growth areas") || q.includes("to grow") || q.includes("areas you'd like to grow") || q.includes("growth goals")) {
+  
+  // 3. Growth Areas
+  if (q.includes("top 3 areas") || q.includes("areas you’d like to grow") || q.includes("areas you'd like to grow") || q.includes("growth goals")) {
     return formatConversationalResponse("growth", profile.growth);
   }
-  if (q.includes("misconception") || q.includes("coworker") || q.includes("misunderstand") || q.includes("misconceptions")) {
+  
+  // 4. Misconceptions
+  if (q.includes("misconception") || q.includes("coworkers have about you") || q.includes("misconceptions")) {
     return formatConversationalResponse("misconception", profile.misconception);
   }
-  if (q.includes("boundary") || q.includes("boundaries") || q.includes("limits") || q.includes("comfort zone") || q.includes("pushing boundaries")) {
-    return formatConversationalResponse("limits", profile.limits);
-  }
   
-  // Custom smart additions for common conversational queries:
-  if (q.includes("interest") || q.includes("hobby") || q.includes("hobbies") || q.includes("outside of work") || q.includes("leisure") || q.includes("free time")) {
-    return "Outside of coding, I love traveling, exploring nature, and recharging my creative battery. I also enjoy researching the latest breakthroughs in AI agent architectures and deep learning models.";
+  // 5. Pushing Limits
+  if (q.includes("push your boundaries") || q.includes("pushing boundaries") || q.includes("limits and boundaries") || q.includes("limits")) {
+    // Only capture limits if they are explicitly asking about limits/boundaries as in the prompt
+    if (q.includes("push") || q.includes("boundary") || q.includes("boundaries")) {
+      return formatConversationalResponse("limits", profile.limits);
+    }
   }
-  if (q.includes("tech stack") || q.includes("what technologies") || q.includes("development stack") || q.includes("programming languages you") || q.includes("what languages do you know")) {
-    return `I specialize in full-stack engineering and AI agent systems. My core stack includes JavaScript, Node.js, Python, HTML5, Vanilla CSS, and modern framework integrations.`;
-  }
-  if (q.includes("professional background") || q.includes("brief career history") || q.includes("career background")) {
-    return `I have a strong background in software engineering, focused on designing full-stack applications and advanced AI agent workflows that automate operations and deliver premium user experiences.`;
-  }
-  
   return null;
 }
 
