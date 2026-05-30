@@ -63,6 +63,7 @@ const server = http.createServer((req, res) => {
       body += chunk.toString();
     });
     req.on('end', async () => {
+      // 1. Try Gemini AI (Primary Engine)
       try {
         const { prompt } = JSON.parse(body);
         let apiKey = process.env.GEMINI_API_KEY;
@@ -88,6 +89,11 @@ const server = http.createServer((req, res) => {
           })
         });
 
+        if (!apiResponse.ok) {
+          const errBody = await apiResponse.text();
+          throw new Error(`Gemini API HTTP Error ${apiResponse.status}: ${errBody}`);
+        }
+
         const data = await apiResponse.json();
         if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
           const answer = data.candidates[0].content.parts[0].text.trim();
@@ -97,11 +103,52 @@ const server = http.createServer((req, res) => {
           return;
         }
         throw new Error(data.error?.message || "Invalid response from Gemini API");
-      } catch (err) {
-        console.error("Gemini local error:", err);
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: err.message }));
+      } catch (geminiError) {
+        console.warn("⚠️ Primary Gemini local engine failed. Triggering Groq Fallback...", geminiError.message);
+
+        // 2. Trigger Groq API (Fallback Engine)
+        try {
+          const { prompt } = JSON.parse(body);
+          const groqKey = process.env.GROQ_API_KEY;
+          if (!groqKey) {
+            throw new Error("GROQ_API_KEY environment variable is not configured.");
+          }
+
+          const groqURL = "https://api.groq.com/openai/v1/chat/completions";
+          const groqResponse = await fetch(groqURL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${groqKey}`
+            },
+            body: JSON.stringify({
+              model: "llama-3.3-70b-versatile",
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.7,
+              max_tokens: 500
+            })
+          });
+
+          if (!groqResponse.ok) {
+            const groqErr = await groqResponse.text();
+            throw new Error(`Groq API HTTP Error ${groqResponse.status}: ${groqErr}`);
+          }
+
+          const groqData = await groqResponse.json();
+          if (groqData.choices && groqData.choices[0] && groqData.choices[0].message) {
+            const answer = groqData.choices[0].message.content.trim();
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ answer }));
+            return;
+          }
+          throw new Error("Invalid response from Groq Fallback API");
+        } catch (groqError) {
+          console.error("❌ Both Primary Gemini and Fallback Groq local engines failed:", groqError.message);
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: `AI engine failure: Gemini (${geminiError.message}) & Groq (${groqError.message})` }));
+        }
       }
     });
     return;
