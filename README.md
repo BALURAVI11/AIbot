@@ -47,6 +47,8 @@ If you do not have Node.js installed, you can run the files directly:
     *   An **interactive voice orb** that breathes in idle mode, pulses crimson when listening, rotates gradient mesh layers when thinking, and ripples concentric wave vectors when speaking.
     *   An animated glowing multi-bar **soundwave visualizer**.
 *   **🌓 Dark & Light Mode Theme Switcher**: Features a circular glass button in the header that instantly morphs the entire design between a deep cosmic midnight theme and a frosted mint-white layout, saving your preference automatically.
+*   **🔒 High-Fidelity Interactive Logout Page Overlay**: A beautiful fullscreen glassmorphic modal representing the system logout experience. Triggered via a sleek bracket button in the header, it features a pulsating neon icon, futuristic explanation, an animated simulated progress bar (loading from `0%` to `15%` to indicate its backlog status), and a "Return to Dashboard" close action.
+*   **🕒 Persistent "Recently Asked Questions" (Past Searches Memory)**: Located at the bottom of the sliding configuration drawer, this panel stores the user's last 10 unique custom queries dynamically using `localStorage` persistence. Clicking any past question automatically slides the sidebar closed, instantly re-submits the query, and triggers the voice/text response.
 *   **⌨️ Inline Keyboard Accessibility**: A sleek text-input bar at the bottom of the transcript lets users type questions manually in noisy rooms or on browsers with disabled microphones.
 *   **⚡ Quick-Start Prompt Chips**: Interactive pills let users immediately query standard interview questions with a single click.
 *   **⚙️ Live Configuration Dashboard (Train Your Twin)**: A beautiful slide-out drawer dashboard where users can review, edit, and save custom answers. Edits instantly retrain the AI Twin!
@@ -144,3 +146,13 @@ Follow this simple, step-by-step checklist to systematically verify every requir
 *   **Action**: Ask a couple of questions, then **refresh your browser window**.
 *   **Check**: The conversation transcript remains visible. Now, click the **Clear** button next to the transcript header.
 *   **Check**: The chat log is instantly cleared, returning the transcript feed to its empty placeholder state.
+
+### 6. Verification of the Logout Page Overlay
+*   **Action**: Click the **Log Out** bracket icon in the top header (next to the theme toggle).
+*   **Check**: Verify that the dark glassmorphic overlay wraps the screen, and the development backlog progress bar animates from `0%` to `15%` with the text *"This feature is yet to be developed!"*.
+*   **Check**: Click the **Return to Dashboard** button and verify that the overlay transitions out smoothly, returning you to your active twin workspace.
+
+### 7. Verification of the Recently Asked Questions Panel
+*   **Action**: Submit a custom query (e.g., *"What is your favorite stack?"*).
+*   **Check**: Open the **Personal Details** sidebar drawer and scroll to the bottom. Verify that your query appears in the **Recent Questions** list.
+*   **Check**: Click the past question button and check that the sidebar slides closed and the AI Twin automatically re-runs and answers the question. Refresh the page to verify that the query list persists safely in browser `localStorage`.
