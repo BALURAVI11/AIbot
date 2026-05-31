@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.0.18">
+  <link rel="stylesheet" href="style.css?v=1.0.22">
 </head>
 <body>
 
@@ -33,6 +33,11 @@
       <!-- Theme Toggle Button -->
       <button id="btn-theme-toggle" class="btn-theme-toggle" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); color: var(--text-primary); width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: var(--transition-fast);" aria-label="Toggle theme">
         <i id="theme-toggle-icon" class="fa-solid fa-sun" style="margin: 0;"></i>
+      </button>
+
+      <!-- Log Out Button -->
+      <button id="btn-logout" class="btn-logout" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); color: var(--text-primary); width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: var(--transition-fast);" aria-label="Log out" title="Log Out">
+        <i class="fa-solid fa-right-from-bracket" style="margin: 0;"></i>
       </button>
 
       <!-- Open Sidebar button -->
@@ -283,6 +288,16 @@
           <textarea id="profile-employment" class="form-input">Lead AI Developer at Agentic Labs (2024 - Present): Pioneered multi-agent pipeline automation. | Senior Full-Stack Engineer at SynthCode (2021 - 2024): Built advanced developer toolkits and responsive cloud panels.</textarea>
         </div>
 
+        <!-- Section: Recently Asked Questions -->
+        <div class="form-group" style="border-top: 1px solid var(--border-glass); padding-top: 1.25rem; margin-top: 0.5rem;">
+          <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 600;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-indigo);"></i> Recent Questions (Past Searches)
+          </label>
+          <div id="recent-questions-container" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 160px; overflow-y: auto; padding: 2px;">
+            <div class="text-muted" style="font-size: 0.75rem; font-style: italic; opacity: 0.65;">No recent questions asked yet.</div>
+          </div>
+        </div>
+
 
 
       </div>
@@ -299,6 +314,34 @@
 
   </div>
 
+  <!-- Log Out Feature Overlay / Page -->
+  <div id="logout-overlay" class="logout-overlay">
+    <div class="logout-card">
+      <div class="logout-card-glow"></div>
+      <div class="logout-header">
+        <i class="fa-solid fa-right-from-bracket logout-neon-icon"></i>
+        <h2>System Logout</h2>
+      </div>
+      <div class="logout-body">
+        <p class="logout-main-msg">This feature is yet to be developed!</p>
+        <p class="logout-sub-msg">Your session details and API keys are currently held securely in your local environment. Future updates will introduce secure federated authentication, database session invalidation, and remote cache purges.</p>
+        
+        <!-- Premium simulated progress bar or loader to indicate active design -->
+        <div class="dev-progress-container">
+          <div class="dev-progress-label"><span>Feature Status: In Backlog</span><span id="dev-progress-percent">0%</span></div>
+          <div class="dev-progress-bar">
+            <div id="dev-progress-fill" class="dev-progress-fill"></div>
+          </div>
+        </div>
+      </div>
+      <div class="logout-actions">
+        <button id="btn-logout-close" class="btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <i class="fa-solid fa-arrow-left"></i> Return to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Status Toast Notifications -->
   <div id="toast" class="toast" role="status" aria-live="polite">
     <i class="fa-solid fa-circle-check"></i>
@@ -306,6 +349,6 @@
   </div>
 
   <!-- Client JavaScript -->
-  <script src="app.js?v=1.0.18"></script>
+  <script src="app.js?v=1.0.22"></script>
 </body>
 </html>

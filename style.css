@@ -76,22 +76,25 @@ body.light-theme {
     radial-gradient(at 50% 50%, rgba(20, 184, 166, 0.02) 0px, transparent 50%);
 }
 
-/* Theme Toggle Button Hover & Icon Effects */
-.btn-theme-toggle:hover {
+/* Theme Toggle & Log Out Button Hover & Icon Effects */
+.btn-theme-toggle:hover, .btn-logout:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(20, 184, 166, 0.4) !important;
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(20, 184, 166, 0.2);
 }
-body.light-theme .btn-theme-toggle:hover {
+body.light-theme .btn-theme-toggle:hover, body.light-theme .btn-logout:hover {
   background: rgba(0, 0, 0, 0.04) !important;
   border-color: rgba(20, 184, 166, 0.4) !important;
 }
-.btn-theme-toggle i {
+.btn-theme-toggle i, .btn-logout i {
   transition: transform 0.5s ease;
 }
 .btn-theme-toggle:hover i {
   transform: rotate(30deg);
+}
+.btn-logout:hover i {
+  transform: translateX(-2px);
 }
 
 /* Light Theme Element Overrides */
@@ -1322,5 +1325,162 @@ textarea.form-input {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem !important;
+  }
+}
+
+/* ==========================================================================
+   Logout Page / Overlay Styling (Cosmic Cyber / Neon Aurora)
+   ========================================================================== */
+.logout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(8, 7, 18, 0.94);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.logout-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.logout-card {
+  background: rgba(18, 16, 35, 0.7);
+  border: 1px solid var(--border-glass);
+  border-radius: 20px;
+  padding: 2.5rem;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(20, 184, 166, 0.05);
+  transform: translateY(30px) scale(0.95);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.logout-overlay.open .logout-card {
+  transform: translateY(0) scale(1);
+}
+
+.logout-card-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.logout-neon-icon {
+  font-size: 3.5rem;
+  color: var(--accent-indigo);
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  margin-bottom: 1.5rem;
+  animation: pulse-logout-glow 2.5s infinite alternate;
+}
+
+.logout-card h2 {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+
+.logout-main-msg {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.logout-sub-msg {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  opacity: 0.85;
+}
+
+.dev-progress-container {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.dev-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.dev-progress-bar {
+  background: rgba(255, 255, 255, 0.05);
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dev-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-indigo));
+  transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light Theme Overrides */
+body.light-theme .logout-overlay {
+  background: rgba(240, 242, 245, 0.94);
+}
+
+body.light-theme .logout-card {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 0 0 40px rgba(20, 184, 166, 0.05);
+}
+
+body.light-theme .logout-neon-icon {
+  color: var(--accent-indigo);
+  text-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+}
+
+body.light-theme .dev-progress-container {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .dev-progress-bar {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@keyframes pulse-logout-glow {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 1;
+    text-shadow: 0 0 25px rgba(99, 102, 241, 0.65), 0 0 35px rgba(20, 184, 166, 0.35);
   }
 }

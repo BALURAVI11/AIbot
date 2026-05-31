@@ -87,7 +87,13 @@ const DOM = {
   
   // Toast
   toast: document.getElementById("toast"),
-  toastMessage: document.getElementById("toast-message")
+  toastMessage: document.getElementById("toast-message"),
+  
+  // Logout & Recent Questions elements
+  btnLogout: document.getElementById("btn-logout"),
+  logoutOverlay: document.getElementById("logout-overlay"),
+  btnLogoutClose: document.getElementById("btn-logout-close"),
+  recentQuestionsContainer: document.getElementById("recent-questions-container")
 };
 
 // 4. Initialize Application
@@ -97,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSpeechRecognition();
   initSpeechSynthesis();
   loadChatHistory();
+  loadRecentQuestions();
 });
 
 // 5. State Controller
@@ -241,6 +248,51 @@ function initUIListeners() {
   DOM.btnSaveProfile.addEventListener("click", saveProfile);
   DOM.btnResetProfile.addEventListener("click", resetProfile);
   
+  // Log Out handler (Show premium overlay page with interactive elements)
+  DOM.btnLogout.addEventListener("click", () => {
+    if (DOM.logoutOverlay) {
+      DOM.logoutOverlay.classList.add("open");
+      
+      const fill = document.getElementById("dev-progress-fill");
+      const label = document.getElementById("dev-progress-percent");
+      if (fill && label) {
+        fill.style.width = "0%";
+        label.textContent = "0%";
+        setTimeout(() => {
+          fill.style.width = "15%";
+          let count = 0;
+          const interval = setInterval(() => {
+            if (count >= 15) {
+              clearInterval(interval);
+            } else {
+              count++;
+              label.textContent = count + "%";
+            }
+          }, 60);
+        }, 150);
+      }
+    } else {
+      showToast("This feature is yet to be developed!", true);
+    }
+  });
+
+  if (DOM.btnLogoutClose) {
+    DOM.btnLogoutClose.addEventListener("click", () => {
+      if (DOM.logoutOverlay) {
+        DOM.logoutOverlay.classList.remove("open");
+        // Reset state after animation completes
+        setTimeout(() => {
+          const fill = document.getElementById("dev-progress-fill");
+          const label = document.getElementById("dev-progress-percent");
+          if (fill && label) {
+            fill.style.width = "0%";
+            label.textContent = "0%";
+          }
+        }, 400);
+      }
+    });
+  }
+
   // Click Orb actions
   DOM.voiceOrb.addEventListener("click", handleOrbClick);
   
@@ -497,6 +549,9 @@ function speakText(text) {
 // 10. Intelligent Query Orchestration & Fallback Cache
 function handleQuery(question) {
   if (!question || !question.trim()) return;
+  
+  // Save search query into recent list
+  addRecentQuestion(question);
   
   // Interrupt speaking if any
   if (synth) synth.cancel();
@@ -889,4 +944,133 @@ function showToast(message, isError = false) {
   setTimeout(() => {
     DOM.toast.classList.remove("show");
   }, 3500);
+}
+
+// 14. Recently Asked Questions (Past Searches Memory) Helper Functions
+function loadRecentQuestions() {
+  const stored = localStorage.getItem("virtual_self_recent_questions");
+  let questions = [];
+  if (stored) {
+    try {
+      questions = JSON.parse(stored) || [];
+    } catch (e) {
+      questions = [];
+    }
+  }
+  renderRecentQuestionsDOM(questions);
+}
+
+function renderRecentQuestionsDOM(questions) {
+  if (!DOM.recentQuestionsContainer) return;
+  DOM.recentQuestionsContainer.innerHTML = "";
+  
+  if (questions.length === 0) {
+    const emptyDiv = document.createElement("div");
+    emptyDiv.className = "text-muted";
+    emptyDiv.style.fontSize = "0.75rem";
+    emptyDiv.style.fontStyle = "italic";
+    emptyDiv.style.opacity = "0.65";
+    emptyDiv.textContent = "No recent questions asked yet.";
+    DOM.recentQuestionsContainer.appendChild(emptyDiv);
+    return;
+  }
+  
+  questions.forEach(q => {
+    const btn = document.createElement("button");
+    btn.className = "recent-question-item";
+    
+    // Apply styling dynamically to guarantee first-class themes integration
+    btn.style.background = "rgba(255, 255, 255, 0.02)";
+    btn.style.border = "1px solid var(--border-glass)";
+    btn.style.borderRadius = "8px";
+    btn.style.padding = "8px 10px";
+    btn.style.fontSize = "0.75rem";
+    btn.style.color = "var(--text-secondary)";
+    btn.style.textAlign = "left";
+    btn.style.cursor = "pointer";
+    btn.style.transition = "var(--transition-fast)";
+    btn.style.wordBreak = "break-word";
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.gap = "0.5rem";
+    btn.style.width = "100%";
+    
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-clock-rotate-left";
+    icon.style.color = "var(--text-muted)";
+    icon.style.fontSize = "0.7rem";
+    icon.style.flexShrink = "0";
+    
+    const textSpan = document.createElement("span");
+    textSpan.textContent = q;
+    textSpan.style.flex = "1";
+    textSpan.style.overflow = "hidden";
+    textSpan.style.textOverflow = "ellipsis";
+    textSpan.style.whiteSpace = "nowrap";
+    
+    btn.appendChild(icon);
+    btn.appendChild(textSpan);
+    
+    // Smooth Micro-interactions & animations on hover
+    btn.addEventListener("mouseenter", () => {
+      btn.style.background = "var(--grad-glow)";
+      btn.style.borderColor = "rgba(20, 184, 166, 0.4)";
+      btn.style.color = "var(--text-primary)";
+      btn.style.transform = "translateX(2px)";
+      btn.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.background = "rgba(255, 255, 255, 0.02)";
+      btn.style.borderColor = "var(--border-glass)";
+      btn.style.color = "var(--text-secondary)";
+      btn.style.transform = "translateX(0)";
+      btn.style.boxShadow = "none";
+    });
+    
+    // Clicking instantly executes query and hides sidebar
+    btn.addEventListener("click", () => {
+      DOM.sidebar.classList.remove("open");
+      handleQuery(q);
+    });
+    
+    DOM.recentQuestionsContainer.appendChild(btn);
+  });
+}
+
+function addRecentQuestion(q) {
+  if (!q || !q.trim()) return;
+  q = q.trim();
+  
+  // Exclude raw click triggers of standard quick chips to keep recent list authentic and interesting
+  const lowercaseQ = q.toLowerCase();
+  const isQuickChip = lowercaseQ.includes("life story") || 
+                     lowercaseQ.includes("superpower") || 
+                     lowercaseQ.includes("grow in") || 
+                     lowercaseQ.includes("misconception") || 
+                     lowercaseQ.includes("boundaries and limits");
+  if (isQuickChip) return;
+
+  const stored = localStorage.getItem("virtual_self_recent_questions");
+  let questions = [];
+  if (stored) {
+    try {
+      questions = JSON.parse(stored) || [];
+    } catch (e) {
+      questions = [];
+    }
+  }
+  
+  // Eliminate duplicates
+  questions = questions.filter(item => item.toLowerCase() !== lowercaseQ);
+  
+  // Prepend
+  questions.unshift(q);
+  
+  // Limit to maximum 10 past searches
+  if (questions.length > 10) {
+    questions = questions.slice(0, 10);
+  }
+  
+  localStorage.setItem("virtual_self_recent_questions", JSON.stringify(questions));
+  renderRecentQuestionsDOM(questions);
 }
