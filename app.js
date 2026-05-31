@@ -493,8 +493,8 @@ function initSpeechSynthesis() {
       DOM.voiceSelect.value = preferredVoice;
       selectedVoice = availableVoices.find(v => v.name === preferredVoice);
     } else {
-      // Default to "Shelly" (English United Kingdom), or any en-GB voice, falling back to US defaults
-      const bestDefault = sortedVoices.find(v => v.name.toLowerCase().includes("shelly")) ||
+      // Default to "Daniel" (English British Male Voice) for every new user, falling back to other en-GB or default voices
+      const bestDefault = sortedVoices.find(v => v.name.toLowerCase().includes("daniel")) ||
                           sortedVoices.find(v => v.lang.startsWith("en-GB") || v.lang.startsWith("en_GB")) ||
                           sortedVoices.find(v => v.name.includes("Google US English") || v.name.includes("Samantha") || v.lang.startsWith("en-US"));
       if (bestDefault) {
@@ -532,6 +532,7 @@ function speakText(text) {
   
   if (selectedVoice) {
     activeUtterance.voice = selectedVoice;
+    activeUtterance.lang = selectedVoice.lang; // Guarantee language syncs and updates on mobile browsers
   }
   
   // Speed

@@ -1312,19 +1312,36 @@ textarea.form-input {
     flex-direction: column;
     gap: 0.75rem;
     align-items: stretch;
+    padding: 10px 12px !important;
   }
   .voice-select-container {
     justify-content: space-between;
+    align-items: center;
     width: 100%;
+    display: flex;
   }
   .voice-select {
-    max-width: 70% !important;
+    max-width: none !important;
+    width: auto !important;
     flex: 1;
+    margin-left: 0.5rem;
   }
   .voice-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.6rem !important;
+  }
+  .voice-control-slider {
+    display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem !important;
+    align-items: center;
+    width: 100%;
+  }
+  .voice-control-slider input {
+    flex: 1;
+    width: auto !important;
+    margin: 0 0.5rem;
   }
 }
 
