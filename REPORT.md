@@ -66,6 +66,11 @@ Credentials are now dynamically resolved using standard enterprise patterns:
     > **"Always ensure every sentence is fully completed. Never stop or cut off mid-sentence."**
 *   This completely resolves issues where Gemini would terminate generation in the middle of a sentence to obey strict word limits.
 
+### 🧠 Conversational Memory (Chat History Context)
+*   Integrated multi-turn short-term memory inside `queryLLM` in `app.js` to enable contextually rich follow-up answers.
+*   The script extracts up to the **last 8 dialogue exchanges** from the persistent `localStorage` chat feed and injects them directly into the API request prompt.
+*   This allows the AI to successfully follow up on pronouns (like *"that"*, *"it"*, *"why?"*), remember previous questions, and deliver fluid, coherent, multi-turn interview conversations.
+
 ### 📉 Minimally Invasive Error Toggles
 *   If both the primary and fallback AI engines fail (e.g., severe internet disconnect), the bot delivers a friendly, polite apology:
     > *"I’m sorry, I couldn’t process that properly right now. Could you please try asking again?"*
