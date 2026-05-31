@@ -686,6 +686,18 @@ function formatConversationalResponse(type, content) {
 
 // 11. LLM API Query Router
 async function queryLLM(question) {
+  // Get up to the last 8 messages prior to the current question for conversation memory
+  let historyText = "";
+  const historySlice = conversationHistory.slice(-9, -1);
+  if (historySlice.length > 0) {
+    historyText = "\nHere is the recent conversation history for context (use this to follow up, understand references like 'it' or 'that', and maintain continuity):\n";
+    historySlice.forEach(msg => {
+      const senderLabel = msg.sender === "user" ? "User" : "Raviteja Kolluri (You)";
+      historyText += `${senderLabel}: ${msg.text}\n`;
+    });
+    historyText += "\n";
+  }
+
   // Construct a comprehensive, natural prompt
   const fullPrompt = `You are Raviteja Kolluri, a recent Computer Science engineering graduate passionate about AI, full-stack development, and problem-solving.
 Your role is to answer interview, technical, and conversational questions naturally as Raviteja would in a real voice interview.
@@ -731,7 +743,7 @@ Response:
 1. Python has simpler and more concise syntax, while Java requires more boilerplate code.
 2. Python is dynamically typed, whereas Java is statically typed.
 3. Python is commonly used in AI, automation, and scripting, while Java is widely used in enterprise applications and Android development.
-
+${historyText}
 User's Question: "${question}"
 AI Twin Response:`;
 
