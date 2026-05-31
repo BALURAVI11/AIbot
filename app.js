@@ -30,7 +30,9 @@ let synth = window.speechSynthesis;
 let availableVoices = [];
 let selectedVoice = null;
 let activeUtterance = null;
-let conversationHistory = []; // Persistent chat log
+let conversationHistory = []; // Persistent chat log for active session
+let activeChatSession = null;
+let recentChats = [];
 
 // 3. DOM Elements Setup
 const DOM = {
@@ -89,10 +91,12 @@ const DOM = {
   toast: document.getElementById("toast"),
   toastMessage: document.getElementById("toast-message"),
   
-  // Logout & Recent Questions elements
+  // Logout, Recent Chats & Questions elements
   btnLogout: document.getElementById("btn-logout"),
   logoutOverlay: document.getElementById("logout-overlay"),
   btnLogoutClose: document.getElementById("btn-logout-close"),
+  btnNewChat: document.getElementById("btn-new-chat"),
+  recentChatsContainer: document.getElementById("recent-chats-container"),
   recentQuestionsContainer: document.getElementById("recent-questions-container")
 };
 
@@ -309,7 +313,12 @@ function initUIListeners() {
   // Clear chat
   DOM.btnClearChat.addEventListener("click", () => {
     conversationHistory = [];
-    localStorage.removeItem("virtual_self_chat_history");
+    if (activeChatSession) {
+      activeChatSession.messages = [];
+      activeChatSession.title = "New Conversation";
+      activeChatSession.lastActive = Date.now();
+      localStorage.setItem("virtual_self_active_chat", JSON.stringify(activeChatSession));
+    }
     DOM.transcriptFeed.innerHTML = "";
     DOM.transcriptFeed.appendChild(DOM.transcriptPlaceholder);
     DOM.transcriptPlaceholder.style.display = "flex";
@@ -317,6 +326,13 @@ function initUIListeners() {
     setState("idle");
     showToast("Conversation cleared", false);
   });
+
+  // Start new chat session trigger
+  if (DOM.btnNewChat) {
+    DOM.btnNewChat.addEventListener("click", () => {
+      startNewChatSession(true);
+    });
+  }
   
   // Keyboard Chat Input Form
   DOM.chatForm.addEventListener("submit", (e) => {
@@ -823,28 +839,95 @@ AI Twin Response:`;
   throw new Error(data.error || "Empty response from serverless endpoint");
 }
 
-// 12. Transcript Render utilities
+// 12. Transcript Render utilities & Session Managers
 function loadChatHistory() {
-  const storedHistory = localStorage.getItem("virtual_self_chat_history");
-  if (storedHistory) {
+  // 1. Load recent archived conversations
+  const storedRecent = localStorage.getItem("virtual_self_recent_chats");
+  if (storedRecent) {
     try {
-      conversationHistory = JSON.parse(storedHistory) || [];
-      if (conversationHistory.length > 0) {
-        DOM.transcriptPlaceholder.style.display = "none";
-        conversationHistory.forEach(msg => {
-          renderMessageDOM(msg.sender, msg.text, msg.errorDetails);
-        });
-      }
+      recentChats = JSON.parse(storedRecent) || [];
     } catch (e) {
-      console.error("Failed to load chat history", e);
-      conversationHistory = [];
+      recentChats = [];
     }
+  }
+  renderRecentChatsDOM();
+
+  // 2. Load current active conversation session
+  const storedActive = localStorage.getItem("virtual_self_active_chat");
+  let activeSession = null;
+  if (storedActive) {
+    try {
+      activeSession = JSON.parse(storedActive);
+    } catch (e) {
+      activeSession = null;
+    }
+  }
+  
+  if (activeSession) {
+    // Check inactivity threshold (15 minutes = 900,000 ms) and make sure it has messages
+    const timeDiff = Date.now() - (activeSession.lastActive || 0);
+    if (timeDiff > 900000 && activeSession.messages && activeSession.messages.length > 0) {
+      // Archive session to sidebar
+      archiveChatSession(activeSession);
+      // Start a brand new blank session
+      activeChatSession = createNewSessionObject();
+    } else {
+      // Restore existing active session and update its lastActive stamp
+      activeChatSession = activeSession;
+      activeChatSession.lastActive = Date.now();
+    }
+  } else {
+    // Self-migration: read from legacy history key if active
+    const legacyHistory = localStorage.getItem("virtual_self_chat_history");
+    let legacyMessages = [];
+    if (legacyHistory) {
+      try {
+        legacyMessages = JSON.parse(legacyHistory) || [];
+      } catch (e) {
+        legacyMessages = [];
+      }
+    }
+    
+    activeChatSession = createNewSessionObject();
+    if (legacyMessages.length > 0) {
+      activeChatSession.messages = legacyMessages;
+      // Get title from first question
+      activeChatSession.title = legacyMessages.find(m => m.sender === "user")?.text || "Migrated Conversation";
+    }
+    // Purge legacy key to prevent overlap
+    localStorage.removeItem("virtual_self_chat_history");
+  }
+  
+  // Save updated session state
+  localStorage.setItem("virtual_self_active_chat", JSON.stringify(activeChatSession));
+  conversationHistory = activeChatSession.messages || [];
+  
+  // 3. Render current active session messages
+  if (conversationHistory.length > 0) {
+    DOM.transcriptPlaceholder.style.display = "none";
+    conversationHistory.forEach(msg => {
+      renderMessageDOM(msg.sender, msg.text, msg.errorDetails);
+    });
   }
 }
 
 function appendMessage(sender, text, errorDetails) {
   conversationHistory.push({ sender, text, errorDetails });
-  localStorage.setItem("virtual_self_chat_history", JSON.stringify(conversationHistory));
+  
+  // Sync active session details
+  activeChatSession.messages = conversationHistory;
+  activeChatSession.lastActive = Date.now();
+  
+  // If first user query, dynamically label the session topic
+  if (sender === "user" && (!activeChatSession.title || activeChatSession.title === "New Conversation")) {
+    let cleanTitle = text.trim();
+    if (cleanTitle.length > 32) {
+      cleanTitle = cleanTitle.substring(0, 32) + "...";
+    }
+    activeChatSession.title = cleanTitle || "Chat Topic";
+  }
+  
+  localStorage.setItem("virtual_self_active_chat", JSON.stringify(activeChatSession));
   renderMessageDOM(sender, text, errorDetails);
 }
 
@@ -1073,4 +1156,173 @@ function addRecentQuestion(q) {
   
   localStorage.setItem("virtual_self_recent_questions", JSON.stringify(questions));
   renderRecentQuestionsDOM(questions);
+}
+
+// 15. Multi-Session Conversation (Max 3 Chats) Helper Functions
+function createNewSessionObject() {
+  return {
+    id: "chat_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+    title: "New Conversation",
+    messages: [],
+    lastActive: Date.now()
+  };
+}
+
+function archiveChatSession(session) {
+  if (!session || !session.messages || session.messages.length === 0) return;
+  
+  // Reload current archived conversations to guarantee cache validity
+  let storedRecent = [];
+  const stored = localStorage.getItem("virtual_self_recent_chats");
+  if (stored) {
+    try {
+      storedRecent = JSON.parse(stored) || [];
+    } catch (e) {
+      storedRecent = [];
+    }
+  }
+  
+  // Remove any duplicates with identical ID
+  storedRecent = storedRecent.filter(c => c.id !== session.id);
+  
+  // Prepend
+  storedRecent.unshift(session);
+  
+  // Cap at maximum of 3 chats
+  if (storedRecent.length > 3) {
+    storedRecent = storedRecent.slice(0, 3);
+  }
+  
+  recentChats = storedRecent;
+  localStorage.setItem("virtual_self_recent_chats", JSON.stringify(recentChats));
+  renderRecentChatsDOM();
+}
+
+function startNewChatSession(userClicked = false) {
+  // 1. Archive current active if it has content
+  if (activeChatSession && activeChatSession.messages && activeChatSession.messages.length > 0) {
+    archiveChatSession(activeChatSession);
+  }
+  
+  // 2. Spawn new session object
+  activeChatSession = createNewSessionObject();
+  conversationHistory = [];
+  localStorage.setItem("virtual_self_active_chat", JSON.stringify(activeChatSession));
+  
+  // 3. Reset transcript UI
+  DOM.transcriptFeed.innerHTML = "";
+  DOM.transcriptFeed.appendChild(DOM.transcriptPlaceholder);
+  DOM.transcriptPlaceholder.style.display = "flex";
+  
+  if (synth) synth.cancel();
+  setState("idle");
+  
+  // 4. Update sidebar list
+  renderRecentChatsDOM();
+  
+  if (userClicked) {
+    showToast("Started a new conversation topic", false);
+  }
+}
+
+function renderRecentChatsDOM() {
+  if (!DOM.recentChatsContainer) return;
+  DOM.recentChatsContainer.innerHTML = "";
+  
+  if (recentChats.length === 0) {
+    const emptyDiv = document.createElement("div");
+    emptyDiv.className = "text-muted";
+    emptyDiv.style.fontSize = "0.75rem";
+    emptyDiv.style.fontStyle = "italic";
+    emptyDiv.style.opacity = "0.65";
+    emptyDiv.textContent = "No saved conversations yet.";
+    DOM.recentChatsContainer.appendChild(emptyDiv);
+    return;
+  }
+  
+  recentChats.forEach(chat => {
+    const btn = document.createElement("button");
+    btn.className = "recent-chat-item";
+    
+    // Cosmic design integrations
+    btn.style.background = "rgba(255, 255, 255, 0.02)";
+    btn.style.border = "1px solid var(--border-glass)";
+    btn.style.borderRadius = "8px";
+    btn.style.padding = "8px 10px";
+    btn.style.fontSize = "0.75rem";
+    btn.style.color = "var(--text-secondary)";
+    btn.style.textAlign = "left";
+    btn.style.cursor = "pointer";
+    btn.style.transition = "var(--transition-fast)";
+    btn.style.wordBreak = "break-word";
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.gap = "0.5rem";
+    btn.style.width = "100%";
+    
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-comments";
+    icon.style.color = "var(--accent-cyan)";
+    icon.style.fontSize = "0.75rem";
+    icon.style.flexShrink = "0";
+    
+    const textSpan = document.createElement("span");
+    textSpan.textContent = chat.title || "Untitled Chat";
+    textSpan.style.flex = "1";
+    textSpan.style.overflow = "hidden";
+    textSpan.style.textOverflow = "ellipsis";
+    textSpan.style.whiteSpace = "nowrap";
+    
+    btn.appendChild(icon);
+    btn.appendChild(textSpan);
+    
+    // Hover micro-animations
+    btn.addEventListener("mouseenter", () => {
+      btn.style.background = "var(--grad-glow)";
+      btn.style.borderColor = "rgba(20, 184, 166, 0.4)";
+      btn.style.color = "var(--text-primary)";
+      btn.style.transform = "translateX(2px)";
+      btn.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.background = "rgba(255, 255, 255, 0.02)";
+      btn.style.borderColor = "var(--border-glass)";
+      btn.style.color = "var(--text-secondary)";
+      btn.style.transform = "translateX(0)";
+      btn.style.boxShadow = "none";
+    });
+    
+    // Clicking restores the past conversation
+    btn.addEventListener("click", () => {
+      // 1. Archive current active if it has messages
+      if (activeChatSession && activeChatSession.messages && activeChatSession.messages.length > 0) {
+        archiveChatSession(activeChatSession);
+      }
+      
+      // 2. Restore selected chat
+      activeChatSession = chat;
+      conversationHistory = chat.messages || [];
+      activeChatSession.lastActive = Date.now();
+      localStorage.setItem("virtual_self_active_chat", JSON.stringify(activeChatSession));
+      
+      // 3. Render UI bubbles
+      DOM.transcriptFeed.innerHTML = "";
+      if (conversationHistory.length > 0) {
+        DOM.transcriptPlaceholder.style.display = "none";
+        conversationHistory.forEach(msg => {
+          renderMessageDOM(msg.sender, msg.text, msg.errorDetails);
+        });
+      } else {
+        DOM.transcriptFeed.appendChild(DOM.transcriptPlaceholder);
+        DOM.transcriptPlaceholder.style.display = "flex";
+      }
+      
+      // 4. Update sidebar list and close panel
+      DOM.sidebar.classList.remove("open");
+      renderRecentChatsDOM();
+      showToast("Loaded past conversation session", false);
+    });
+    
+    DOM.recentChatsContainer.appendChild(btn);
+  });
 }

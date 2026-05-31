@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.0.22">
+  <link rel="stylesheet" href="style.css?v=1.0.24">
 </head>
 <body>
 
@@ -121,9 +121,14 @@
             <span class="transcript-header-title">
               <i class="fa-solid fa-message"></i> Conversation Transcript
             </span>
-            <button id="btn-clear-chat" class="btn-clear-chat">
-              <i class="fa-solid fa-trash-can"></i> Clear
-            </button>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <button id="btn-new-chat" class="btn-new-chat" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 0.75rem; cursor: pointer; transition: var(--transition-fast); display: flex; align-items: center; gap: 0.25rem;" title="Start a brand new topic">
+                <i class="fa-solid fa-plus"></i> New Chat
+              </button>
+              <button id="btn-clear-chat" class="btn-clear-chat">
+                <i class="fa-solid fa-trash-can"></i> Clear
+              </button>
+            </div>
           </div>
           
           <div id="transcript-feed" class="transcript-feed">
@@ -288,6 +293,16 @@
           <textarea id="profile-employment" class="form-input">Lead AI Developer at Agentic Labs (2024 - Present): Pioneered multi-agent pipeline automation. | Senior Full-Stack Engineer at SynthCode (2021 - 2024): Built advanced developer toolkits and responsive cloud panels.</textarea>
         </div>
 
+        <!-- Section: Recent Conversations -->
+        <div class="form-group" style="border-top: 1px solid var(--border-glass); padding-top: 1.25rem; margin-top: 0.5rem;">
+          <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 600;">
+            <i class="fa-solid fa-comments" style="color: var(--accent-cyan);"></i> Recent Conversations (Max 3)
+          </label>
+          <div id="recent-chats-container" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 120px; overflow-y: auto; padding: 2px;">
+            <div class="text-muted" style="font-size: 0.75rem; font-style: italic; opacity: 0.65;">No saved conversations yet.</div>
+          </div>
+        </div>
+
         <!-- Section: Recently Asked Questions -->
         <div class="form-group" style="border-top: 1px solid var(--border-glass); padding-top: 1.25rem; margin-top: 0.5rem;">
           <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 600;">
@@ -349,6 +364,6 @@
   </div>
 
   <!-- Client JavaScript -->
-  <script src="app.js?v=1.0.22"></script>
+  <script src="app.js?v=1.0.24"></script>
 </body>
 </html>
