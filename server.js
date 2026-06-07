@@ -83,7 +83,7 @@ const server = http.createServer((req, res) => {
               parts: [{ text: prompt }]
             }],
             generationConfig: {
-              maxOutputTokens: 500,
+              maxOutputTokens: 1000,
               temperature: 0.7
             }
           })
@@ -125,7 +125,7 @@ const server = http.createServer((req, res) => {
               model: "llama-3.3-70b-versatile",
               messages: [{ role: "user", content: prompt }],
               temperature: 0.7,
-              max_tokens: 500
+              max_tokens: 1000
             })
           });
 

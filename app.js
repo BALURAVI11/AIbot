@@ -33,6 +33,9 @@ let activeUtterance = null;
 let conversationHistory = []; // Persistent chat log for active session
 let activeChatSession = null;
 let recentChats = [];
+let speechQueue = [];
+let currentSpeechIndex = 0;
+let isSpeakingQueue = false;
 
 // 3. DOM Elements Setup
 const DOM = {
@@ -322,7 +325,7 @@ function initUIListeners() {
     DOM.transcriptFeed.innerHTML = "";
     DOM.transcriptFeed.appendChild(DOM.transcriptPlaceholder);
     DOM.transcriptPlaceholder.style.display = "flex";
-    if (synth) synth.cancel();
+    cancelSpeech();
     setState("idle");
     showToast("Conversation cleared", false);
   });
@@ -407,7 +410,7 @@ function initSpeechRecognition() {
   
   recognition.onstart = () => {
     setState("listening");
-    if (synth) synth.cancel(); // Stop any reading if user talks
+    cancelSpeech(); // Stop any reading if user talks
   };
   
   recognition.onresult = (event) => {
@@ -449,7 +452,7 @@ function handleOrbClick() {
   } else if (currentState === "listening") {
     if (recognition) recognition.stop();
   } else if (currentState === "speaking") {
-    if (synth) synth.cancel();
+    cancelSpeech();
     setState("idle");
   }
 }
@@ -518,21 +521,117 @@ function initSpeechSynthesis() {
   });
 }
 
+function cancelSpeech() {
+  isSpeakingQueue = false;
+  speechQueue = [];
+  currentSpeechIndex = 0;
+  if (synth) {
+    synth.cancel();
+  }
+}
+
+function chunkText(text, maxLength = 160) {
+  if (!text) return [];
+  
+  // Clean multiple spaces
+  text = text.replace(/\s+/g, ' ').trim();
+  
+  // Split on sentence punctuation (. ! ?) but keep the punctuation attached to the sentence
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+(\s|$)/g) || [text];
+  
+  const chunks = [];
+  let currentChunk = "";
+  
+  for (let sentence of sentences) {
+    sentence = sentence.trim();
+    if (!sentence) continue;
+    
+    // If adding this sentence exceeds maxLength, check how to handle it
+    if ((currentChunk + " " + sentence).trim().length > maxLength) {
+      if (currentChunk) {
+        chunks.push(currentChunk.trim());
+        currentChunk = "";
+      }
+      
+      // If a single sentence itself is longer than maxLength, split it on commas, semicolons, colons, or spaces
+      if (sentence.length > maxLength) {
+        const parts = sentence.split(/([,;:—\s]+)/);
+        let tempChunk = "";
+        
+        for (let part of parts) {
+          if ((tempChunk + part).length > maxLength) {
+            if (tempChunk.trim()) {
+              chunks.push(tempChunk.trim());
+            }
+            tempChunk = part;
+          } else {
+            tempChunk += part;
+          }
+        }
+        if (tempChunk.trim()) {
+          currentChunk = tempChunk.trim();
+        }
+      } else {
+        currentChunk = sentence;
+      }
+    } else {
+      currentChunk = currentChunk ? (currentChunk + " " + sentence) : sentence;
+    }
+  }
+  
+  if (currentChunk.trim()) {
+    chunks.push(currentChunk.trim());
+  }
+  
+  return chunks.filter(Boolean);
+}
+
 function speakText(text) {
   if (!synth) return;
   
-  // Stop speaking
-  synth.cancel();
+  // Stop ongoing speaking and clear previous queue
+  cancelSpeech();
+  
+  if (!text || !text.trim()) {
+    setState("idle");
+    return;
+  }
   
   // Clean text of simple markdown symbols (like stars or dashes)
   const cleanText = text.replace(/[\*\_\`\#\-]/g, "").trim();
   
-  activeUtterance = new SpeechSynthesisUtterance(cleanText);
+  // Split the text into smaller speakable chunks to prevent browser speech timeout bugs
+  speechQueue = chunkText(cleanText, 160);
+  
+  if (speechQueue.length === 0) {
+    setState("idle");
+    return;
+  }
+  
+  isSpeakingQueue = true;
+  currentSpeechIndex = 0;
+  
+  // Start the queue
+  setState("speaking");
+  speakNextChunk();
+}
+
+function speakNextChunk() {
+  if (!isSpeakingQueue || currentSpeechIndex >= speechQueue.length) {
+    isSpeakingQueue = false;
+    if (currentState === "speaking") {
+      setState("idle");
+    }
+    return;
+  }
+  
+  const chunkTextVal = speechQueue[currentSpeechIndex];
+  activeUtterance = new SpeechSynthesisUtterance(chunkTextVal);
   window.activeUtterance = activeUtterance; // Prevent garbage collection mid-speech in Chrome
   
   if (selectedVoice) {
     activeUtterance.voice = selectedVoice;
-    activeUtterance.lang = selectedVoice.lang; // Guarantee language syncs and updates on mobile browsers
+    activeUtterance.lang = selectedVoice.lang;
   }
   
   // Speed
@@ -548,16 +647,17 @@ function speakText(text) {
   };
   
   activeUtterance.onend = () => {
-    if (currentState === "speaking") {
-      setState("idle");
-    }
+    if (!isSpeakingQueue) return;
+    currentSpeechIndex++;
+    speakNextChunk();
   };
   
   activeUtterance.onerror = (e) => {
-    console.error("Speech Synthesis Error:", e);
-    if (currentState === "speaking") {
-      setState("idle");
-    }
+    if (!isSpeakingQueue) return;
+    console.error("Speech Synthesis Chunk Error:", e);
+    // Proceed to the next chunk so we don't get stuck permanently
+    currentSpeechIndex++;
+    speakNextChunk();
   };
   
   synth.speak(activeUtterance);
@@ -571,7 +671,7 @@ function handleQuery(question) {
   addRecentQuestion(question);
   
   // Interrupt speaking if any
-  if (synth) synth.cancel();
+  cancelSpeech();
   
   appendMessage("user", question);
   setState("thinking");
@@ -1215,7 +1315,7 @@ function startNewChatSession(userClicked = false) {
   DOM.transcriptFeed.appendChild(DOM.transcriptPlaceholder);
   DOM.transcriptPlaceholder.style.display = "flex";
   
-  if (synth) synth.cancel();
+  cancelSpeech();
   setState("idle");
   
   // 4. Update sidebar list
