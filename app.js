@@ -7,7 +7,7 @@
 
 // 1. Default Profile Definition (representing Raviteja Kolluri)
 const DEFAULT_PROFILE = {
-  name: "Raviteja Kolluri",
+  name: "Ravi Teja Kolluri",
   title: "Computer Science Graduate & Aspiring AI Engineer",
   story: "I am a recent Computer Science engineering graduate who is deeply passionate about AI, full-stack development, and problem-solving. My journey began with a curiosity for how complex systems process information, which led me to study intelligent systems, build modern web applications, and experiment with local LLMs. I love taking on challenging algorithms and crafting clean, user-friendly solutions.",
   superpower: "My superpower is my hyper-focused problem-solving ability and rapid learning capacity. When faced with a new technology, framework, or complex bug, I deep-dive into the documentation and source code to master it in a matter of hours, translating theoretical concepts into clean, functional code immediately.",
@@ -188,6 +188,11 @@ function loadProfile() {
       if (profile.provider === "puter" && !profile.apiKey) {
         profile.provider = "gemini";
       }
+
+      // Migrate old name format "Raviteja Kolluri" to the new default "Ravi Teja Kolluri"
+      if (profile.name === "Raviteja Kolluri") {
+        profile.name = "Ravi Teja Kolluri";
+      }
     } catch (e) {
       console.error("Failed to parse stored profile, reverting to defaults.", e);
       profile = { ...DEFAULT_PROFILE };
@@ -227,6 +232,7 @@ function saveProfile() {
   profile.provider = "gemini";
   
   localStorage.setItem("virtual_self_profile", JSON.stringify(profile));
+  updateUINames();
   showToast("Personal Details Saved!", false);
   
   // Close Sidebar
@@ -236,6 +242,13 @@ function saveProfile() {
   if (currentState === "idle") {
     setState("idle");
   }
+}
+
+function updateUINames() {
+  const botLabels = DOM.transcriptFeed.querySelectorAll(".message.bot .message-label");
+  botLabels.forEach(label => {
+    label.textContent = profile.name;
+  });
 }
 
 function resetProfile() {
@@ -864,15 +877,15 @@ async function queryLLM(question) {
   if (historySlice.length > 0) {
     historyText = "\nHere is the recent conversation history for context (use this to follow up, understand references like 'it' or 'that', and maintain continuity):\n";
     historySlice.forEach(msg => {
-      const senderLabel = msg.sender === "user" ? "User" : "Raviteja Kolluri (You)";
+      const senderLabel = msg.sender === "user" ? "User" : `${profile.name} (You)`;
       historyText += `${senderLabel}: ${msg.text}\n`;
     });
     historyText += "\n";
   }
 
   // Construct a comprehensive, natural prompt
-  const fullPrompt = `You are Raviteja Kolluri, a recent Computer Science engineering graduate passionate about AI, full-stack development, and problem-solving.
-Your role is to answer interview, technical, and conversational questions naturally as Raviteja would in a real voice interview.
+  const fullPrompt = `You are ${profile.name}, a recent Computer Science engineering graduate passionate about AI, full-stack development, and problem-solving.
+Your role is to answer interview, technical, and conversational questions naturally as ${profile.name} would in a real voice interview.
 
 Here is your background context (use these details to formulate your answers, and maintain consistency with them):
 - Life Story / Bio: ${profile.story}
